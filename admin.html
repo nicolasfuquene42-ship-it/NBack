@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KORTEX — Consola de Administración Live</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
+  <style>
+    /* Premium Cyberpunk Styles */
+    :root {
+      --bg: #0b0f1a;
+      --surf: #1a2235;
+      --card: #151c2c;
+      --bdr: #2a3550;
+      --prime: #6effc8;
+      --teal: #00f0ff;
+      --warn: #d47a7a;
+      --text: #e8eef8;
+      --muted: #5a6a82;
+      --neon-glow: 0 0 10px rgba(110, 255, 200, 0.4);
+      --r: 8px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--bdr);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--prime);
+    }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow-y: auto;
+      min-height: 100vh;
+    }
+    
+    h1, h2, h3, .heading {
+      font-family: 'Rajdhani', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    /* Login Container */
+    #login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      z-index: 10;
+      background: var(--bg);
+    }
+    
+    .login-box {
+      background: var(--card);
+      border: 1px solid var(--bdr);
+      border-radius: 12px;
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      position: relative;
+    }
+    
+    .login-box::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(135deg, var(--prime), var(--teal));
+      z-index: -1;
+      border-radius: 14px;
+      opacity: 0.3;
+      filter: blur(4px);
+    }
+    
+    .login-logo {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--prime);
+      text-shadow: var(--neon-glow);
+      margin-bottom: 5px;
+      letter-spacing: 0.1em;
+    }
+    
+    .login-tag {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      margin-bottom: 30px;
+    }
+    
+    .login-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      padding: 14px 20px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .login-input:focus {
+      border-color: var(--prime);
+      box-shadow: var(--neon-glow);
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--prime);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--r);
+      padding: 14px 28px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      width: 100%;
+      letter-spacing: 0.05em;
+      transition: transform 0.12s, filter 0.12s, box-shadow 0.2s;
+    }
+    
+    .btn:active {
+      transform: scale(0.98);
+      filter: brightness(0.9);
+    }
+    
+    .btn:focus {
+      outline: none;
+      box-shadow: var(--neon-glow);
+    }
+    
+    .btn-danger {
+      background: transparent;
+      color: var(--warn);
+      border: 1px solid var(--warn);
+    }
+    
+    .btn-danger:active {
+      background: rgba(212, 122, 122, 0.1);
+    }
+    
+    .error-msg {
+      color: var(--warn);
+      font-size: 0.85rem;
+      margin-top: 15px;
+      display: none;
+      font-weight: 500;
+      animation: blink 1s infinite alternate;
+    }
+    
+    @keyframes blink {
+      0% { opacity: 0.3; text-shadow: 0 0 2px var(--warn); }
+      100% { opacity: 1; text-shadow: 0 0 8px var(--warn); }
+    }
+    
+    /* Dashboard Screen */
+    #dashboard-screen {
+      display: none;
+      opacity: 0;
+      padding: 30px;
+      transition: opacity 0.5s ease;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    /* Header */
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--bdr);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .logo-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .db-logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--prime);
+      text-shadow: var(--neon-glow);
+      letter-spacing: 0.08em;
+      line-height: 1.1;
+    }
+    
+    .db-sublogo {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      margin-top: 4px;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .btn-reset {
+      background: transparent;
+      color: var(--warn);
+      border: 1px solid var(--warn);
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      border-radius: var(--r);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-reset:hover {
+      background: rgba(212, 122, 122, 0.1);
+      box-shadow: 0 0 10px rgba(212, 122, 122, 0.2);
+    }
+    
+    /* Summary metrics row */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 35px;
+    }
+    
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--bdr);
+      border-radius: 12px;
+      padding: 24px 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 4px;
+      background: var(--prime);
+      border-top-left-radius: 12px;
+      border-bottom-left-radius: 12px;
+    }
+    
+    .metric-card.teal::after {
+      background: var(--teal);
+    }
+    
+    .metric-card.warn::after {
+      background: var(--warn);
+    }
+    
+    .metric-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    
+    .metric-value {
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1.1;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    
+    .metric-sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    
+    /* Grid system for dashboard columns */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 8fr 5fr;
+      gap: 30px;
+    }
+    
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--bdr);
+      border-radius: 12px;
+      padding: 25px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--bdr);
+      padding-bottom: 12px;
+    }
+    
+    .panel-title span.pulse {
+      font-size: 0.7rem;
+      background: rgba(110, 255, 200, 0.1);
+      border: 1px solid var(--prime);
+      color: var(--prime);
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.05em;
+    }
+    
+    /* Tables design */
+    .data-table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    
+    .data-table th {
+      padding: 12px 14px;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 1.5px solid var(--bdr);
+    }
+    
+    .data-table td {
+      padding: 14px;
+      border-bottom: 1px solid rgba(44, 48, 88, 0.35);
+      color: var(--text);
+    }
+    
+    .data-table tbody tr {
+      transition: background 0.15s;
+    }
+    
+    .data-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.015);
+    }
+    
+    .data-table tbody tr.first-place {
+      background: rgba(110, 255, 200, 0.04);
+    }
+    
+    .data-table tbody tr.first-place td:first-child {
+      color: var(--prime);
+      font-weight: 700;
+      text-shadow: 0 0 5px rgba(110, 255, 200, 0.3);
+    }
+    
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .badge-accuracy {
+      color: var(--prime);
+      font-weight: 600;
+    }
+    
+    .badge-friction {
+      color: var(--warn);
+    }
+    
+    .badge-mode {
+      background: rgba(90, 106, 130, 0.15);
+      color: var(--muted);
+      border: 1px solid rgba(90, 106, 130, 0.3);
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    
+    .badge-mode.dual {
+      background: rgba(110, 255, 200, 0.1);
+      color: var(--prime);
+      border-color: rgba(110, 255, 200, 0.3);
+    }
+    
+    .badge-mode.span {
+      background: rgba(0, 240, 255, 0.1);
+      color: var(--teal);
+      border-color: rgba(0, 240, 255, 0.3);
+    }
+    
+    .badge-mode.nback {
+      background: rgba(232, 238, 248, 0.06);
+      color: var(--text);
+      border-color: rgba(232, 238, 248, 0.15);
+    }
+    
+    .badge-mode.emotion {
+      background: rgba(212, 122, 122, 0.1);
+      color: var(--warn);
+      border-color: rgba(212, 122, 122, 0.3);
+    }
+    
+    /* Neon update flash animation */
+    @keyframes updateFlash {
+      0% {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        border-color: var(--bdr);
+      }
+      30% {
+        box-shadow: 0 0 15px rgba(110, 255, 200, 0.2);
+        border-color: var(--prime);
+      }
+      100% {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        border-color: var(--bdr);
+      }
+    }
+    
+    .flash-update {
+      animation: updateFlash 1s ease-out;
+    }
+    
+    /* Confirmation Modal overlay styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(11, 15, 26, 0.9);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal-box {
+      background: var(--card);
+      border: 1px solid var(--bdr);
+      border-radius: 12px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.6);
+      padding: 30px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .modal-box.danger-box {
+      border-color: var(--warn);
+      box-shadow: 0 0 25px rgba(212, 122, 122, 0.2);
+    }
+    
+    .modal-title {
+      font-size: 1.3rem;
+      color: var(--warn);
+      font-weight: 700;
+      margin-bottom: 15px;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    
+    .modal-text {
+      font-size: 0.92rem;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+    
+    .modal-buttons button {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--r);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .btn-cancel {
+      background: transparent;
+      border: 1px solid var(--bdr);
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    
+    .btn-cancel:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+    
+    .btn-confirm {
+      background: var(--warn);
+      color: var(--bg);
+      border: none;
+      transition: filter 0.2s;
+    }
+    
+    .btn-confirm:hover {
+      filter: brightness(1.1);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PANTALLA DE LOGIN -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="login-logo">KORTEX</div>
+      <div class="login-tag">LIVE ADMIN CONSOLE</div>
+      
+      <input type="password" id="admin-pass" class="login-input" placeholder="CONTRASEÑA DE ACCESO" autofocus>
+      <button id="btn-login" class="btn">INICIAR CONEXIÓN</button>
+      
+      <div id="error-msg" class="error-msg">ACCESO DENEGADO // CONTRASEÑA INCORRECTA</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD PRINCIPAL -->
+  <div id="dashboard-screen">
+    <div class="dashboard-header">
+      <div class="logo-group">
+        <div class="db-logo">KORTEX // LIVE CONSOLE</div>
+        <div class="db-sublogo">DASHBOARD DE EVALUACIÓN COGNITIVA EN TIEMPO REAL</div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-reset-trigger" class="btn-reset">REINICIAR SIMULACIÓN</button>
+      </div>
+    </div>
+
+    <!-- TARJETAS DE MÉTRICAS -->
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-label">Participantes Activos</div>
+        <div class="metric-value" id="stat-players">0</div>
+        <div class="metric-sub">Jugadores registrados en total</div>
+      </div>
+      <div class="metric-card teal">
+        <div class="metric-label">Adaptabilidad de la Clase (Promedio)</div>
+        <div class="metric-value" id="stat-avg-acc">—</div>
+        <div class="metric-sub">Índice combinado de adaptabilidad</div>
+      </div>
+      <div class="metric-card warn">
+        <div class="metric-label">Jugador Más Rápido</div>
+        <div class="metric-value" id="stat-fastest-player">—</div>
+        <div class="metric-sub" id="stat-fastest-speed">Tiempo de respuesta promedio</div>
+      </div>
+    </div>
+
+    <!-- CONTENEDOR GRID -->
+    <div class="dashboard-grid">
+      
+      <!-- COLUMNA 1: RANKING GENERAL -->
+      <div class="panel" id="panel-ranking">
+        <div class="panel-title">
+          Ranking General de Competencia
+          <span class="pulse">Sincronizado</span>
+        </div>
+        <div class="data-table-container">
+          <table class="data-table" id="table-ranking">
+            <thead>
+              <tr>
+                <th style="width: 8%">Pos</th>
+                <th style="width: 28%">Nombre / Fraternidad</th>
+                <th style="width: 17%">Modalidad</th>
+                <th style="width: 17%">Adaptabilidad</th>
+                <th style="width: 15%">Fricción</th>
+                <th style="width: 15%">Agilidad</th>
+                <th style="width: 10%">Hora</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-body">
+              <tr>
+                <td colspan="7" class="empty-state">Esperando sincronización de datos...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- COLUMNA 2: COMPARATIVA DE MODALIDADES -->
+      <div class="panel" id="panel-comparison">
+        <div class="panel-title">
+          Comparativa de Modalidades
+        </div>
+        <div class="data-table-container">
+          <table class="data-table" id="table-modes">
+            <thead>
+              <tr>
+                <th>Modalidad</th>
+                <th style="text-align: center">Jugadores</th>
+                <th style="text-align: center">Adapt. (%)</th>
+                <th style="text-align: center">Fricción</th>
+                <th style="text-align: center">Agilidad</th>
+              </tr>
+            </thead>
+            <tbody id="modes-body">
+              <tr>
+                <td colspan="5" class="empty-state">No hay suficientes datos.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-top: 25px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--bdr); padding-top: 15px; line-height: 1.55;">
+          <strong>Conceptos analíticos:</strong><br>
+          • <strong>Adaptabilidad:</strong> Precisión obtenida en el juego (memoria de trabajo activa).<br>
+          • <strong>Fricción:</strong> Falsos positivos. Representa resistencia al cambio y errores impulsivos.<br>
+          • <strong>Agilidad:</strong> Tiempo promedio de respuesta en decisiones (segundos).
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN 1 -->
+  <div id="modal-confirm-1" class="modal-overlay">
+    <div class="modal-box danger-box">
+      <div class="modal-title">¿REINICIAR SIMULACIÓN DE CLASE?</div>
+      <div class="modal-text">
+        Esta acción eliminará de forma permanente todos los registros y partidas guardadas en la base de datos de Firebase. Esta visualización quedará en ceros.
+      </div>
+      <div class="modal-overlay-actions modal-buttons">
+        <button class="btn-cancel" onclick="closeModal('modal-confirm-1')">CANCELAR</button>
+        <button class="btn-confirm" onclick="triggerConfirmStep2()">SÍ, BORRAR HISTORIAL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN 2 (DE SEGURIDAD) -->
+  <div id="modal-confirm-2" class="modal-overlay">
+    <div class="modal-box danger-box">
+      <div class="modal-title" style="text-shadow: 0 0 5px rgba(212,122,122,0.4)">CONFIRMACIÓN DE SEGURIDAD</div>
+      <div class="modal-text">
+        ¿Estás absolutamente seguro? Esta acción es destructiva e irreversible. No se podrán recuperar los datos.
+      </div>
+      <div class="modal-overlay-actions modal-buttons">
+        <button class="btn-cancel" onclick="closeModal('modal-confirm-2')">CANCELAR</button>
+        <button class="btn-confirm" style="background:#ff3333; color: white;" onclick="executeDeleteDatabase()">CONFIRMAR BORRADO COMPLETO</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. LÓGICA DE AUTENTICACIÓN
+    const ADMIN_PASSWORD = "KortexAdmin2026";
+    
+    const loginScreen = document.getElementById('login-screen');
+    const dashboardScreen = document.getElementById('dashboard-screen');
+    const passwordInput = document.getElementById('admin-pass');
+    const loginBtn = document.getElementById('btn-login');
+    const errorMsg = document.getElementById('error-msg');
+    
+    function validateLogin() {
+      if (passwordInput.value === ADMIN_PASSWORD) {
+        // Correct password
+        loginScreen.style.display = 'none';
+        dashboardScreen.style.display = 'block';
+        setTimeout(() => {
+          dashboardScreen.style.opacity = 1;
+        }, 50);
+        
+        // Initialize Database connections
+        initFirebase();
+      } else {
+        // Wrong password
+        errorMsg.style.display = 'block';
+        passwordInput.value = '';
+        passwordInput.focus();
+        
+        // Visual shake error alert effect
+        passwordInput.style.borderColor = 'var(--warn)';
+        passwordInput.style.boxShadow = '0 0 10px rgba(212, 122, 122, 0.4)';
+        setTimeout(() => {
+          passwordInput.style.borderColor = 'var(--bdr)';
+          passwordInput.style.boxShadow = 'none';
+        }, 1500);
+      }
+    }
+    
+    loginBtn.addEventListener('click', validateLogin);
+    passwordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') validateLogin();
+    });
+    
+    // 2. CONEXIÓN Y SINCRONIZACIÓN CON FIREBASE
+    const firebaseConfig = {
+      apiKey: "",
+      authDomain: "kortex-innovacion.firebaseapp.com",
+      databaseURL: "https://kortex-innovacion-default-rtdb.firebaseio.com",
+      projectId: "kortex-innovacion",
+      storageBucket: "kortex-innovacion.appspot.com",
+      messagingSenderId: "",
+      appId: ""
+    };
+    
+    let db = null;
+    
+    function initFirebase() {
+      try {
+        if (firebase.apps.length === 0) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.database();
+        
+        // Setup listener
+        db.ref('partidas/').on('value', (snapshot) => {
+          const data = snapshot.val();
+          processGameData(data);
+          flashVisualPanels();
+        }, (error) => {
+          console.error("Error al escuchar Firebase: ", error);
+        });
+      } catch (e) {
+        console.error("Fallo al inicializar Firebase: ", e);
+      }
+    }
+    
+    // Helper function to flash panels on database updates
+    function flashVisualPanels() {
+      const pRanking = document.getElementById('panel-ranking');
+      const pComparison = document.getElementById('panel-comparison');
+      if (pRanking) {
+        pRanking.classList.remove('flash-update');
+        void pRanking.offsetWidth; // Trigger reflow
+        pRanking.classList.add('flash-update');
+      }
+      if (pComparison) {
+        pComparison.classList.remove('flash-update');
+        void pComparison.offsetWidth; // Trigger reflow
+        pComparison.classList.add('flash-update');
+      }
+    }
+    
+    // 3. PROCESAMIENTO Y AGREGACIÓN DE DATOS
+    function processGameData(rawData) {
+      if (!rawData) {
+        renderEmptyDashboard();
+        return;
+      }
+      
+      const parsedPartidas = [];
+      Object.keys(rawData).forEach(key => {
+        const entry = rawData[key];
+        parsedPartidas.push({
+          id: key,
+          nombre: entry.nombre || 'Anon',
+          adaptabilidad: Number(entry.adaptabilidad || 0),
+          resistenciaAlCambio: Number(entry.resistenciaAlCambio || 0),
+          agilidadDecisiones: Number(entry.agilidadDecisiones || 0),
+          modo: entry.modo || 'nback', // Fallback to nback
+          timestamp: entry.timestamp
+        });
+      });
+      
+      // Order ranking by: Adaptabilidad desc, then ResistenciaAlCambio asc, then AgilidadDecisiones asc
+      parsedPartidas.sort((a, b) => {
+        if (b.adaptabilidad !== a.adaptabilidad) {
+          return b.adaptabilidad - a.adaptabilidad;
+        }
+        if (a.resistenciaAlCambio !== b.resistenciaAlCambio) {
+          return a.resistenciaAlCambio - b.resistenciaAlCambio;
+        }
+        return a.agilidadDecisiones - b.agilidadDecisiones;
+      });
+      
+      renderDashboard(parsedPartidas);
+    }
+    
+    function renderEmptyDashboard() {
+      document.getElementById('stat-players').textContent = '0';
+      document.getElementById('stat-avg-acc').textContent = '—';
+      document.getElementById('stat-fastest-player').textContent = '—';
+      document.getElementById('stat-fastest-speed').textContent = 'Tiempo de respuesta promedio';
+      
+      document.getElementById('ranking-body').innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state">No hay partidas registradas en este momento.</td>
+        </tr>
+      `;
+      
+      document.getElementById('modes-body').innerHTML = `
+        <tr>
+          <td colspan="5" class="empty-state">Esperando datos de juego...</td>
+        </tr>
+      `;
+    }
+    
+    function formatTime(ts) {
+      if (!ts) return '—';
+      const d = new Date(ts);
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+    
+    function translateMode(mode) {
+      switch(mode) {
+        case 'dual': return 'Dual N-Back';
+        case 'nback': return 'Posicional';
+        case 'span': return 'Span Complejo';
+        case 'emotion': return 'Emocional';
+        default: return mode;
+      }
+    }
+    
+    function renderDashboard(partidas) {
+      const totalPlayers = partidas.length;
+      document.getElementById('stat-players').textContent = totalPlayers;
+      
+      // Promedio adaptabilidad de la clase
+      const sumAcc = partidas.reduce((acc, p) => acc + p.adaptabilidad, 0);
+      const avgAcc = Math.round(sumAcc / totalPlayers);
+      document.getElementById('stat-avg-acc').textContent = `${avgAcc}%`;
+      
+      // Jugador más rápido (excluding span mode where agilidadDecisiones is 0)
+      const speedList = partidas.filter(p => p.agilidadDecisiones > 0);
+      if (speedList.length > 0) {
+        // Find minimum agilidadDecisiones
+        let fastest = speedList[0];
+        speedList.forEach(p => {
+          if (p.agilidadDecisiones < fastest.agilidadDecisiones) {
+            fastest = p;
+          }
+        });
+        document.getElementById('stat-fastest-player').textContent = fastest.nombre;
+        document.getElementById('stat-fastest-speed').textContent = `Agilidad: ${fastest.agilidadDecisiones} segundos (${translateMode(fastest.modo)})`;
+      } else {
+        document.getElementById('stat-fastest-player').textContent = '—';
+        document.getElementById('stat-fastest-speed').textContent = 'Tiempo de respuesta promedio';
+      }
+      
+      // RENDER RANKING TABLE
+      const rankingBody = document.getElementById('ranking-body');
+      rankingBody.innerHTML = '';
+      
+      partidas.forEach((p, idx) => {
+        const isFirst = idx === 0;
+        const rowClass = isFirst ? 'first-place' : '';
+        const tr = document.createElement('tr');
+        if (rowClass) tr.className = rowClass;
+        
+        tr.innerHTML = `
+          <td style="font-weight:bold">${idx + 1}</td>
+          <td>${p.nombre}</td>
+          <td><span class="badge-mode ${p.modo}">${translateMode(p.modo)}</span></td>
+          <td><span class="badge-accuracy">${p.adaptabilidad}%</span></td>
+          <td class="badge-friction">${p.resistenciaAlCambio}</td>
+          <td>${p.agilidadDecisiones > 0 ? p.agilidadDecisiones + ' s' : '—'}</td>
+          <td style="color:var(--muted); font-size:0.8rem">${formatTime(p.timestamp)}</td>
+        `;
+        rankingBody.appendChild(tr);
+      });
+      
+      // CALCULATE MODAL STATISTICS
+      const modeStats = {};
+      partidas.forEach(p => {
+        if (!modeStats[p.modo]) {
+          modeStats[p.modo] = {
+            name: translateMode(p.modo),
+            count: 0,
+            sumAcc: 0,
+            sumFriction: 0,
+            sumSpeed: 0,
+            speedCount: 0
+          };
+        }
+        const m = modeStats[p.modo];
+        m.count++;
+        m.sumAcc += p.adaptabilidad;
+        m.sumFriction += p.resistenciaAlCambio;
+        if (p.agilidadDecisiones > 0) {
+          m.sumSpeed += p.agilidadDecisiones;
+          m.speedCount++;
+        }
+      });
+      
+      const modesBody = document.getElementById('modes-body');
+      modesBody.innerHTML = '';
+      
+      // Order modes by count desc
+      const sortedModes = Object.keys(modeStats).sort((a,b) => modeStats[b].count - modeStats[a].count);
+      
+      if (sortedModes.length === 0) {
+        modesBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state">Sin estadísticas agregadas.</td>
+          </tr>
+        `;
+      } else {
+        sortedModes.forEach(modeKey => {
+          const m = modeStats[modeKey];
+          const avgMacc = Math.round(m.sumAcc / m.count);
+          const avgFriction = (m.sumFriction / m.count).toFixed(1);
+          const avgSpeed = m.speedCount > 0 ? (m.sumSpeed / m.speedCount).toFixed(2) + ' s' : '—';
+          
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><span class="badge-mode ${modeKey}">${m.name}</span></td>
+            <td style="text-align: center">${m.count}</td>
+            <td style="text-align: center; font-weight: 600; color: var(--prime)">${avgMacc}%</td>
+            <td style="text-align: center; color: var(--warn)">${avgFriction}</td>
+            <td style="text-align: center">${avgSpeed}</td>
+          `;
+          modesBody.appendChild(tr);
+        });
+      }
+    }
+    
+    // 4. CONTROL DE RESETEO (DOBLE CONFIRMACIÓN)
+    const btnResetTrigger = document.getElementById('btn-reset-trigger');
+    
+    btnResetTrigger.addEventListener('click', () => {
+      openModal('modal-confirm-1');
+    });
+    
+    function openModal(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+    
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+    
+    function triggerConfirmStep2() {
+      closeModal('modal-confirm-1');
+      openModal('modal-confirm-2');
+    }
+    
+    function executeDeleteDatabase() {
+      closeModal('modal-confirm-2');
+      if (db) {
+        db.ref('partidas/').remove()
+          .then(() => {
+            alert("Simulación reiniciada correctamente. Consola limpia.");
+          })
+          .catch((error) => {
+            console.error("Error al limpiar Firebase: ", error);
+            alert("Error al intentar limpiar la base de datos.");
+          });
+      } else {
+        alert("Error: No hay conexión activa a la base de datos.");
+      }
+    }
+  </script>
+</body>
+</html>

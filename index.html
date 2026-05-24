@@ -564,6 +564,16 @@
     <!-- Panel 2: interactive mini-game controls -->
     <div id="tuto-match-area" style="display:none">
       <div style="height:20px"></div>
+      <div class="dual-btns" id="tuto-dual-btns" style="justify-content:center;margin:0 auto;display:none;width:min(280px,calc(100vw - 44px))">
+        <button class="dbtn" id="tuto-btn-match-pos" disabled>
+          <span class="dbtn-sub">Posición (A)</span>
+          Ubicación
+        </button>
+        <button class="dbtn" id="tuto-btn-match-sound" disabled>
+          <span class="dbtn-sub">Sonido (L)</span>
+          Sonido
+        </button>
+      </div>
       <button class="mbtn" id="tuto-match-btn" disabled style="width:min(260px,calc(100vw - 72px))">COINCIDE</button>
       <div id="tuto-feedback" style="font-size:.78rem;text-align:center;min-height:20px;margin-top:8px;color:var(--muted)"></div>
     </div>

@@ -23,7 +23,7 @@ if (typeof firebase !== 'undefined') {
   }
 }
 
-function enviarResultadosAFirebase(scoreData) {
+function enviarResultadosAFirebase(scoreData, modo) {
   if (typeof firebase !== 'undefined' && firebase.database) {
     if (!CURRENT_PLAYER_NAME) {
       const nameInput = $('player-name') ? $('player-name').value.trim() : '';
@@ -35,6 +35,7 @@ function enviarResultadosAFirebase(scoreData) {
         adaptabilidad: scoreData.accuracy,
         resistenciaAlCambio: scoreData.falsePositives,
         agilidadDecisiones: scoreData.avgResponseTime,
+        modo: modo || 'nback',
         timestamp: firebase.database.ServerValue.TIMESTAMP
       });
     } catch (e) {
@@ -457,7 +458,7 @@ function endGame(){
   const lureRes = lureTurns>0 ? Math.round(lureResisted/lureTurns*100) : null;
   const postAcc  = postInterruptTotal>0 ? Math.round(postInterruptCorrect/postInterruptTotal*100) : null;
   DB.add({mode,n,hits,misses,omissions,acc,avgInterval,lureTurns,lureResisted,lureRes,postAcc});
-  enviarResultadosAFirebase({ accuracy: acc, falsePositives: misses, avgResponseTime: +(avgInterval/1000).toFixed(2) });
+  enviarResultadosAFirebase({ accuracy: acc, falsePositives: misses, avgResponseTime: +(avgInterval/1000).toFixed(2) }, mode);
   Snd.stopAmb(); Snd.stopBg();
   setTimeout(()=>showPhrase(acc,()=>showResults({mode,n,hits,misses,omissions,acc,avgInterval,lureRes,postAcc})),600);
 }
@@ -659,7 +660,7 @@ function endSpan(){
   const mathAcc=SP.totalMathItems>0?Math.round(SP.totalMathCorrect/SP.totalMathItems*100):0;
   const recallAcc=SP.totalRecallItems>0?Math.round(SP.totalRecallCorrect/SP.totalRecallItems*100):0;
   DB.add({mode:'span',mathAcc,recallAcc,maxSpan:SP.maxSpan});
-  enviarResultadosAFirebase({ accuracy: recallAcc, falsePositives: SP.totalMathItems - SP.totalMathCorrect, avgResponseTime: 0 });
+  enviarResultadosAFirebase({ accuracy: recallAcc, falsePositives: SP.totalMathItems - SP.totalMathCorrect, avgResponseTime: 0 }, 'span');
   Snd.stopBg();
   setTimeout(()=>showPhrase(recallAcc,()=>showResults({mode:'span',mathAcc,recallAcc,maxSpan:SP.maxSpan})),500);
 }
@@ -839,7 +840,7 @@ function endDual(){
   const combAcc=Math.round((visAcc+audAcc)/2);
   const avgInterval=ivHistory.length?Math.round(ivHistory.reduce((a,b)=>a+b,0)/ivHistory.length):INIT_IV;
   DB.add({mode:'dual',n,visAcc,audAcc,combAcc,avgInterval,visHits,visMisses,visOmissions,audHits,audMisses,audOmissions});
-  enviarResultadosAFirebase({ accuracy: combAcc, falsePositives: visMisses + audMisses, avgResponseTime: +(avgInterval/1000).toFixed(2) });
+  enviarResultadosAFirebase({ accuracy: combAcc, falsePositives: visMisses + audMisses, avgResponseTime: +(avgInterval/1000).toFixed(2) }, 'dual');
   Snd.stopAmb(); Snd.stopBg();
   setTimeout(()=>showPhrase(combAcc,()=>showResults({mode:'dual',n,visAcc,audAcc,combAcc,avgInterval})),600);
 }
@@ -1542,7 +1543,29 @@ function renderSettings(){
 ══════════════════════════════════════════ */
 let tutPanel=0, tTOs=[], TG=null;
 
-const tClear=()=>{ tTOs.forEach(t=>clearTimeout(t)); tTOs=[]; if(TG){ TG.stopped=true; TG=null; } };
+const tClear=()=>{
+  tTOs.forEach(t=>clearTimeout(t)); tTOs=[];
+  if(TG){ TG.stopped=true; TG=null; }
+  const ov = $('tuto-overlay'); if (ov) ov.remove();
+  const box = $('tuto-assist-box'); if (box) box.remove();
+  const svg = $('tuto-svg'); if (svg) svg.remove();
+  
+  // Clear styles that were highlighted in tuto
+  const grid = $('tgrid');
+  if (grid) { grid.style.position = ''; grid.style.zIndex = ''; }
+  const cell0 = $('tc0');
+  if (cell0) { cell0.style.position = ''; cell0.style.zIndex = ''; cell0.style.borderColor = ''; cell0.style.boxShadow = ''; cell0.classList.remove('lit-ok'); }
+  
+  // Reset buttons
+  const bp = $('tuto-btn-match-pos'); if (bp) { bp.disabled = true; bp.classList.remove('ready', 'hit', 'miss'); bp.style.position = ''; bp.style.zIndex = ''; }
+  const bs = $('tuto-btn-match-sound'); if (bs) { bs.disabled = true; bs.classList.remove('ready', 'hit', 'miss'); bs.style.position = ''; bs.style.zIndex = ''; }
+  
+  window.removeEventListener('resize', drawTutoArrows);
+  window.removeEventListener('scroll', drawTutoArrows);
+  
+  $('tuto-next').style.visibility = 'visible';
+  $('tuto-prev').style.visibility = 'visible';
+};
 const tLight=(i)=>{ const c=$('tc'+i); if(c) c.classList.add('lit'); };
 const tOff=(i)=>{ const c=$('tc'+i); if(c) c.classList.remove('lit','dim'); };
 const tDim=(i)=>{ const c=$('tc'+i); if(c){ c.classList.remove('lit'); c.classList.add('dim'); } };
@@ -1550,94 +1573,328 @@ const tOffAll=()=>{ for(let i=0;i<9;i++) tOff(i); };
 
 // Panel 0 animation: looping cell showcase
 function tAnimShowcase(){
-  const seq=[4,0,8,2,6,1,7,3,5]; let i=0;
-  const s=()=>{ tOffAll(); tLight(seq[i%seq.length]); i++; tTOs.push(setTimeout(s,900)); };
+  const seq=[4,0,8,2,6,1,7,3,5];
+  const letters=['B','D','F','H','J','K','L','M','N'];
+  let i=0;
+  const s=()=>{
+    tOffAll(); tLight(seq[i%seq.length]);
+    if(CFG.get('dualAudioOn')) speakLetter(letters[i%letters.length]);
+    i++;
+    tTOs.push(setTimeout(s,1300));
+  };
   s();
 }
 
 // Panel 1 animation: match demo
 function tAnimMatch(){
-  const seq=[3,6,3,7,6],lbls=['Turno 1','Turno 2','Turno 3 ← igual que T1 ✓','Turno 4','Turno 5 ← igual que T3 ✓'];
+  const seq=[0,4,0,1,6];
+  const letters=['B','D','B','H','H'];
+  const lbls=[
+    'Turno 1: Posición Arriba-Izquierda / Letra B',
+    'Turno 2: Posición Centro / Letra D',
+    'Turno 3: Posición Arriba-Izquierda (igual que T1 ✓) / Letra B (igual que T1 ✓)',
+    'Turno 4: Posición Arriba-Centro / Letra H',
+    'Turno 5: Posición Abajo-Izquierda / Letra H (igual que T3 ✓)'
+  ];
   const lbl=$('tuto-label'); let i=0;
-  const s=()=>{ tOffAll(); const m=i>=2&&seq[i]===seq[i-2]; tLight(seq[i]); if(m) tDim(seq[i-2]); if(lbl){lbl.textContent=lbls[i];lbl.style.color=m?'var(--prime)':'var(--muted)';} tTOs.push(setTimeout(()=>{ tOffAll(); tTOs.push(setTimeout(()=>{i=(i+1)%seq.length;s();},550)); },1100)); };
+  const s=()=>{
+    tOffAll();
+    tLight(seq[i]);
+    if(CFG.get('dualAudioOn')) speakLetter(letters[i]);
+    if(lbl){
+      lbl.textContent=lbls[i];
+      const isMatch = i>=2 && (seq[i]===seq[i-2] || letters[i]===letters[i-2]);
+      lbl.style.color=isMatch?'var(--prime)':'var(--muted)';
+    }
+    tTOs.push(setTimeout(()=>{
+      tOffAll();
+      tTOs.push(setTimeout(()=>{i=(i+1)%seq.length;s();},600));
+    },1400));
+  };
   s();
 }
 
 // Panel 2: interactive mini-game constants
 const TUTO_LIT=800, TUTO_IV=4000, TUTO_N=2, TUTO_ACTIVE=8;
 
-function startTutoGame(){
-  const seq=genOBSeq(TUTO_N,9,TUTO_ACTIVE);
-  TG={ n:TUTO_N, seq, turn:0, total:TUTO_N+TUTO_ACTIVE, responded:false, stopped:false, t1:0,t2:0,t3:0 };
-  $('tuto-match-area').style.display='block';
-  $('tuto-done').style.display='none';
-  $('tuto-feedback').textContent='';
-  $('tuto-feedback').style.color='var(--muted)';
-  setTimeout(runTutoTurn,600);
+function drawTutoArrows() {
+  const svg = $('tuto-svg');
+  if (!svg) return;
+  svg.innerHTML = '';
+  
+  const box = $('tuto-assist-box');
+  const cell = $('tc0');
+  const btn = $('tuto-btn-match-pos');
+  
+  if (!box || !cell || !btn) return;
+  
+  const boxRect = box.getBoundingClientRect();
+  const cellRect = cell.getBoundingClientRect();
+  const btnRect = btn.getBoundingClientRect();
+  
+  const cellX = cellRect.left + cellRect.width / 2;
+  const cellY = cellRect.top + cellRect.height / 2;
+  
+  const btnX = btnRect.left + btnRect.width / 2;
+  const btnY = btnRect.top + btnRect.height / 2;
+  
+  const boxTopX = boxRect.left + boxRect.width / 2;
+  const boxTopY = boxRect.top;
+  const boxBotX = boxRect.left + boxRect.width / 2;
+  const boxBotY = boxRect.bottom;
+  
+  svg.innerHTML = `
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--prime)" />
+      </marker>
+    </defs>
+    
+    <path d="M ${boxTopX} ${boxTopY} Q ${(boxTopX + cellX)/2} ${(boxTopY + cellY)/2 - 20} ${cellX} ${cellY}" 
+          fill="none" stroke="var(--prime)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)">
+      <animate attributeName="stroke-dashoffset" values="20;0" dur="1s" repeatCount="indefinite" />
+    </path>
+    
+    <path d="M ${boxBotX} ${boxBotY} Q ${(boxBotX + btnX)/2} ${(boxBotY + btnY)/2 + 20} ${btnX} ${btnY}" 
+          fill="none" stroke="var(--prime)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)">
+      <animate attributeName="stroke-dashoffset" values="20;0" dur="1s" repeatCount="indefinite" />
+    </path>
+  `;
 }
 
-function runTutoTurn(){
-  if(!TG||TG.stopped) return;
-  const {n,seq,turn,total}=TG;
-  const warm=turn<n;
-  const cell=seq[turn];
-  const isMatch=!warm&&seq[turn]===seq[turn-n];
-  TG.responded=false;
-  // Hint
-  let hint='';
-  if(warm)         hint=`Turno ${turn+1} de ${total} — Solo observa.`;
-  else if(isMatch) hint=`Turno ${turn+1} de ${total} — ¡Presiona COINCIDE ahora!`;
-  else             hint=`Turno ${turn+1} de ${total} — ¿Recuerdas la celda de hace 2 turnos?`;
-  $('tuto-content').innerHTML=`<div style="background:rgba(110,255,200,.07);border:1px solid rgba(110,255,200,.2);border-radius:var(--r);padding:10px 14px;font-size:.84rem;color:var(--text);line-height:1.55;margin-bottom:14px;min-height:54px">${hint}</div>`;
-  $('tuto-feedback').textContent='';
-  // Stimulus
-  tLight(cell);
-  TG.t1=setTimeout(()=>tOff(cell),TUTO_LIT);
-  // Enable button
-  const btn=$('tuto-match-btn');
-  if(!warm){ btn.disabled=false; btn.classList.add('ready'); }
-  else { btn.disabled=true; btn.classList.remove('ready','hit','miss'); }
-  // Close window
-  TG.t2=setTimeout(()=>{
-    btn.disabled=true; btn.classList.remove('ready');
-    if(!warm&&isMatch&&!TG.responded){
-      $('tuto-feedback').style.color='var(--muted)';
-      $('tuto-feedback').textContent='Esa sí coincidía. La próxima estás atento.';
+function showHUDOnboardingAssist() {
+  if (!TG || TG.stopped) return;
+  TG.waitingForValidation = true;
+  
+  // 1. Inject overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'tuto-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(11, 15, 26, 0.85);
+    z-index: 40;
+    pointer-events: auto;
+  `;
+  document.body.appendChild(overlay);
+  
+  // 2. Inject explanation box
+  const box = document.createElement('div');
+  box.id = 'tuto-assist-box';
+  box.className = 'tuto-assist-box';
+  box.style.cssText = `
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(300px, 85vw);
+    background: #0b0f1a;
+    border: 1px solid var(--prime);
+    box-shadow: 0 0 15px rgba(110, 255, 200, 0.4);
+    padding: 16px;
+    border-radius: 8px;
+    z-index: 46;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    line-height: 1.6;
+    text-align: center;
+    font-size: 0.88rem;
+  `;
+  box.innerHTML = `
+    <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+      Guía de Memoria N=2
+    </div>
+    <div style="margin-bottom: 0;">
+      Compara este estímulo con el de hace 2 turnos (Turno 1). Como la <strong>Ubicación</strong> se repite, debes presionar el botón correspondiente abajo para anotar un punto.
+    </div>
+  `;
+  document.body.appendChild(box);
+  
+  // 3. Inject SVG overlay
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.id = 'tuto-svg';
+  svg.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 45;
+    pointer-events: none;
+  `;
+  document.body.appendChild(svg);
+  
+  // 4. Elevate grid, target cell and match buttons
+  const grid = $('tgrid');
+  if (grid) {
+    grid.style.position = 'relative';
+    grid.style.zIndex = '45';
+  }
+  const cell0 = $('tc0');
+  if (cell0) {
+    cell0.style.position = 'relative';
+    cell0.style.zIndex = '45';
+    cell0.style.borderColor = 'var(--prime)';
+    cell0.style.boxShadow = '0 0 12px var(--prime)';
+  }
+  
+  const bp = $('tuto-btn-match-pos');
+  if (bp) {
+    bp.disabled = false;
+    bp.style.position = 'relative';
+    bp.style.zIndex = '45';
+    bp.classList.add('ready');
+  }
+  
+  const bs = $('tuto-btn-match-sound');
+  if (bs) {
+    bs.disabled = false;
+    bs.style.position = 'relative';
+    bs.style.zIndex = '45';
+    bs.classList.add('ready');
+  }
+  
+  // Draw arrows initially
+  drawTutoArrows();
+  
+  // Recalculate on resize/scroll
+  window.addEventListener('resize', drawTutoArrows);
+  window.addEventListener('scroll', drawTutoArrows);
+  
+  // 5. Define validation logic
+  TG.validateFn = (channel) => {
+    if (channel === 'vis') {
+      // SUCCESS!
+      window.removeEventListener('resize', drawTutoArrows);
+      window.removeEventListener('scroll', drawTutoArrows);
+      
+      Snd.hit();
+      
+      if (cell0) {
+        cell0.classList.add('lit-ok');
+        setTimeout(() => cell0.classList.remove('lit-ok'), 600);
+      }
+      if (bp) {
+        bp.classList.remove('ready');
+        bp.classList.add('hit');
+      }
+      
+      // Clean up helper visuals
+      tClear();
+      
+      // Show done state
+      endTutoGame();
+    } else {
+      // WRONG!
+      Snd.falseAlarm();
+      if (bs) {
+        bs.classList.add('miss');
+        setTimeout(() => bs.classList.remove('miss'), 600);
+      }
+      $('tuto-feedback').style.color = 'var(--warn)';
+      $('tuto-feedback').textContent = 'Esa no coincide. Recuerda que la letra actual ("F") es diferente a la de hace 2 turnos ("B"). Presiona UBICACIÓN.';
     }
-  },TUTO_IV-700);
-  // Advance
-  TG.t3=setTimeout(()=>{
-    if(!TG||TG.stopped) return;
-    TG.turn++;
-    if(TG.turn>=TG.total) endTutoGame();
-    else runTutoTurn();
-  },TUTO_IV);
+  };
 }
 
-function tutoRespond(){
-  if(!TG||TG.stopped||TG.responded||TG.turn<TG.n) return;
-  TG.responded=true;
-  const {n,seq,turn}=TG;
-  const isMatch=seq[turn]===seq[turn-n];
-  const btn=$('tuto-match-btn');
-  if(isMatch){
-    btn.classList.remove('ready','miss'); btn.classList.add('hit');
-    const c=$('tc'+seq[turn]); if(c){ c.classList.add('lit-ok'); setTimeout(()=>c.classList.remove('lit-ok'),520); }
-    $('tuto-feedback').style.color='var(--prime)';
-    $('tuto-feedback').textContent='¡Así es!';
+function startTutoGame() {
+  tClear();
+  const seqVis = [0, 4, 0];
+  const seqAud = ['B', 'D', 'F'];
+  TG = {
+    n: 2,
+    seqVis,
+    seqAud,
+    turn: 0,
+    total: 3,
+    stopped: false,
+    waitingForValidation: false,
+    t1: 0, t2: 0, t3: 0,
+    validateFn: null
+  };
+  
+  const tutoMatchBtn = $('tuto-match-btn');
+  if (tutoMatchBtn) tutoMatchBtn.style.display = 'none';
+  const tutoDualBtns = $('tuto-dual-btns');
+  if (tutoDualBtns) tutoDualBtns.style.display = 'flex';
+  
+  $('tuto-match-area').style.display = 'block';
+  $('tuto-done').style.display = 'none';
+  $('tuto-feedback').textContent = '';
+  $('tuto-feedback').style.color = 'var(--muted)';
+  
+  // Hide navigation arrows to force sequential tutorial
+  $('tuto-next').style.visibility = 'hidden';
+  $('tuto-prev').style.visibility = 'hidden';
+  
+  setTimeout(runTutoTurn, 600);
+}
+
+function runTutoTurn() {
+  if (!TG || TG.stopped) return;
+  const { n, seqVis, seqAud, turn, total } = TG;
+  const cell = seqVis[turn];
+  const letter = seqAud[turn];
+  
+  TG.waitingForValidation = false;
+  $('tuto-feedback').textContent = '';
+  
+  let hint = '';
+  if (turn === 0) {
+    hint = `Turno 1 de 3: Observa la posición y escucha el sonido.`;
+  } else if (turn === 1) {
+    hint = `Turno 2 de 3: Recuerda la secuencia. Cada elemento avanza un paso.`;
   } else {
-    btn.classList.remove('ready','hit'); btn.classList.add('miss');
-    $('tuto-feedback').style.color='var(--warn)';
-    $('tuto-feedback').textContent='Esa no coincidía con la de 2 turnos atrás. Tranquilo, seguimos.';
+    hint = `Turno 3 de 3: ¡Espera! Analicemos este turno.`;
+  }
+  
+  $('tuto-content').innerHTML = `
+    <div style="background:rgba(110,255,200,.07);border:1px solid rgba(110,255,200,.2);border-radius:var(--r);padding:10px 14px;font-size:.84rem;color:var(--text);line-height:1.55;margin-bottom:14px;min-height:54px">
+      ${hint}
+    </div>
+  `;
+  
+  tOffAll();
+  tLight(cell);
+  
+  speakLetter(letter);
+  Snd.cell();
+  
+  if (turn < 2) {
+    TG.t1 = setTimeout(() => tOff(cell), TUTO_LIT);
+    TG.t2 = setTimeout(() => {
+      if (!TG || TG.stopped) return;
+      TG.turn++;
+      runTutoTurn();
+    }, 2800);
+  } else {
+    setTimeout(() => {
+      if (!TG || TG.stopped) return;
+      showHUDOnboardingAssist();
+    }, 400);
   }
 }
 
-function endTutoGame(){
-  TG=null; tOffAll();
-  const btn=$('tuto-match-btn'); btn.disabled=true; btn.classList.remove('ready','hit','miss');
-  $('tuto-content').innerHTML='';
-  $('tuto-match-area').style.display='none';
-  $('tuto-done').style.display='block';
+function tutoRespond() {
+  // Deprecated for new interactive flow, but left as no-op to prevent exceptions
+}
+
+function endTutoGame() {
+  TG = null; tOffAll();
+  const bp = $('tuto-btn-match-pos'); if (bp) { bp.disabled = true; bp.classList.remove('ready', 'hit', 'miss'); }
+  const bs = $('tuto-btn-match-sound'); if (bs) { bs.disabled = true; bs.classList.remove('ready', 'hit', 'miss'); }
+  const btn = $('tuto-match-btn'); if (btn) { btn.disabled = true; btn.classList.remove('ready', 'hit', 'miss'); }
+  
+  $('tuto-content').innerHTML = `<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:10px;color:var(--text)">¡Excelente aprendizaje!</h3>`;
+  $('tuto-match-area').style.display = 'none';
+  $('tuto-done').style.display = 'block';
+  
+  // Show navigation arrows again
+  $('tuto-next').style.visibility = 'visible';
+  $('tuto-prev').style.visibility = 'visible';
 }
 
 function renderTutoPanel(idx){
@@ -1656,16 +1913,16 @@ function renderTutoPanel(idx){
   const scrEl=$('s-tuto'); if(scrEl) scrEl.scrollTop=0;
 
   if(idx===0){
-    $('tuto-content').innerHTML='<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:14px;color:var(--text)">¿Qué vas a hacer?</h3><p style="color:var(--muted);font-size:.88rem;line-height:1.78">Verás cuadros iluminarse, uno por uno, en la grilla.</p>';
+    $('tuto-content').innerHTML='<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:14px;color:var(--text)">¿Qué es Dual N-Back?</h3><p style="color:var(--muted);font-size:.88rem;line-height:1.78">Es el modo principal. Rastrearás dos estímulos al mismo tiempo: una **posición visual** en la grilla y una **letra hablada** por audio.</p>';
     $('tgrid').style.display='grid';
     tTOs.push(setTimeout(tAnimShowcase,420));
   } else if(idx===1){
-    $('tuto-content').innerHTML='<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:10px;color:var(--text)">La regla del juego</h3><p style="font-size:.88rem;color:var(--text);line-height:1.7;margin-bottom:8px">Presiona <strong>COINCIDE</strong> cuando la celda actual sea la misma que la de <span style="color:var(--prime)">2 turnos atrás</span>.</p><p style="font-size:.78rem;color:var(--muted);line-height:1.6">Ejemplo: arriba-izquierda → centro → arriba-izquierda = COINCIDE ✓</p>';
+    $('tuto-content').innerHTML='<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:10px;color:var(--text)">La regla clásica N=2</h3><p style="font-size:.88rem;color:var(--text);line-height:1.7;margin-bottom:8px">Compara el turno actual con el de hace <strong>2 turnos atrás</strong>:<br>- Presiona <span style="color:var(--prime);font-weight:bold;">UBICACIÓN (A)</span> si la posición coincide.<br>- Presiona <span style="color:#7eb8e8;font-weight:bold;">SONIDO (L)</span> si el sonido coincide.</p>';
     $('tgrid').style.display='grid';
     $('tuto-label').style.display='block';
     tTOs.push(setTimeout(tAnimMatch,420));
   } else if(idx===2){
-    $('tuto-content').innerHTML='<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:10px;color:var(--text)">Practiquemos</h3>';
+    $('tuto-content').innerHTML='<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:10px;color:var(--text)">Practiquemos (N=2)</h3>';
     $('tgrid').style.display='grid';
     $('tuto-prev').style.visibility='hidden';
     $('tuto-next').style.visibility='hidden';
@@ -1863,6 +2120,18 @@ $('tuto-prev').addEventListener('click',()=>{ if(tutPanel>0) renderTutoPanel(tut
 $('tuto-next').addEventListener('click',()=>{ if(tutPanel<2) renderTutoPanel(tutPanel+1); else{ tClear(); tOffAll(); show('s-menu'); } });
 $('tuto-match-btn').addEventListener('click',()=>tutoRespond());
 $('tuto-match-btn').addEventListener('touchstart',e=>{ e.preventDefault(); tutoRespond(); },{passive:false});
+
+// Tutorial buttons
+const tbp = $('tuto-btn-match-pos');
+if (tbp) {
+  tbp.addEventListener('click', () => { if(TG && TG.waitingForValidation) TG.validateFn('vis'); });
+  tbp.addEventListener('touchstart', e => { e.preventDefault(); if(TG && TG.waitingForValidation) TG.validateFn('vis'); }, {passive:false});
+}
+const tbs = $('tuto-btn-match-sound');
+if (tbs) {
+  tbs.addEventListener('click', () => { if(TG && TG.waitingForValidation) TG.validateFn('aud'); });
+  tbs.addEventListener('touchstart', e => { e.preventDefault(); if(TG && TG.waitingForValidation) TG.validateFn('aud'); }, {passive:false});
+}
 $('tuto-start-btn').addEventListener('click',()=>{
   tClear(); tOffAll();
   selMode='nback'; selN=2; selDur=8;
@@ -1944,6 +2213,11 @@ document.addEventListener('keydown',e=>{
   if($('s-dual').classList.contains('on')){
     if(e.code==='ArrowLeft'||e.code==='KeyA'){ e.preventDefault(); respondDual('vis',null); }
     if(e.code==='ArrowRight'||e.code==='KeyL'){ e.preventDefault(); respondDual('aud'); }
+  }
+  // Keyboard validation for tutorial
+  if($('s-tuto').classList.contains('on') && TG && TG.waitingForValidation){
+    if(e.code==='ArrowLeft'||e.code==='KeyA'){ e.preventDefault(); TG.validateFn('vis'); }
+    if(e.code==='ArrowRight'||e.code==='KeyL'){ e.preventDefault(); TG.validateFn('aud'); }
   }
 });
 
