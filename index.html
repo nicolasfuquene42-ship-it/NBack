@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KORTEX">
+<meta name="theme-color" content="#0b0f1a">
+<title>KORTEX</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE2MCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE2MCIgaGVpZ2h0PSIxNjAiIHJ4PSIzNiIgZmlsbD0iIzBmMTQyMCIvPjxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iMTYwIiByeD0iMzYiIGZpbGw9IiMxYTNhMmUiIG9wYWNpdHk9IjAuMzUiLz48Y2lyY2xlIGN4PSI4MCIgY3k9IjI4IiByPSI2IiBmaWxsPSIjNmVmZmM4Ii8+PGNpcmNsZSBjeD0iMzAiIGN5PSIxMTgiIHI9IjYiIGZpbGw9IiM2ZWZmYzgiLz48Y2lyY2xlIGN4PSIxMzAiIGN5PSIxMTgiIHI9IjYiIGZpbGw9IiM2ZWZmYzgiLz48Y2lyY2xlIGN4PSI4MCIgY3k9Ijg4IiByPSI2IiBmaWxsPSIjNmVmZmM4Ii8+PGxpbmUgeDE9IjgwIiB5MT0iMjgiIHgyPSIzMCIgeTI9IjExOCIgc3Ryb2tlPSIjNmVmZmM4IiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGxpbmUgeDE9IjgwIiB5MT0iMjgiIHgyPSIxMzAiIHkyPSIxMTgiIHN0cm9rZT0iIzZlZmZjOCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxsaW5lIHgxPSIzMCIgeTE9IjExOCIgeDI9IjEzMCIgeTI9IjExOCIgc3Ryb2tlPSIjNmVmZmM4IiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGxpbmUgeDE9IjgwIiB5MT0iODgiIHgyPSI4MCIgeTI9IjI4IiBzdHJva2U9IiM2ZWZmYzgiIHN0cm9rZT0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4PGxpbmUgeDE9IjgwIiB5MT0iODgiIHgyPSIMwIiB5Mj0iMTE4IiBzdHJva2U9IiM2ZWZmYzgiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48bGluZSB4MT0iODAiIHkxPSI4OCIgeDI9IjEzMCIgeTI9IjExOCIgc3Ryb2tlPSIjNmVmZmM4IiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg id='logo-isotipo' width='160' height='160' viewBox='0 0 160 160' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cfilter id='gi'%3E%3CfeGaussianBlur stdDeviation='3' result='blur'/%3E%3CfeMerge%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3CradialGradient id='bgi' cx='50%25' cy='40%25' r='60%25'%3E%3Cstop offset='0%25' stop-color='%231a3a2e'/%3E%3Cstop offset='100%25' stop-color='%230f1420'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='160' height='160' rx='36' fill='%230f1420'/%3E%3Crect width='160' height='160' rx='36' fill='url(%23bgi)' opacity='0.4'/%3E%3Ccircle cx='80' cy='28' r='6' fill='%236effc8' filter='url(%23gi)'/%3E%3Ccircle cx='30' cy='118' r='6' fill='%236effc8' filter='url(%23gi)'/%3E%3Ccircle cx='130' cy='118' r='6' fill='%236effc8' filter='url(%23gi)'/%3E%3Ccircle cx='80' cy='88' r='6' fill='%236effc8' filter='url(%23gi)'/%3E%3Cline x1='80' y1='28' x2='30' y2='118' stroke='%236effc8' stroke-width='2.5' stroke-linecap='round' filter='url(%23gi)'/%3E%3Cline x1='80' y1='28' x2='130' y2='118' stroke='%236effc8' stroke-width='2.5' stroke-linecap='round' filter='url(%23gi)'/%3E%3Cline x1='30' y1='118' x2='130' y2='118' stroke='%236effc8' stroke-width='2.5' stroke-linecap='round' filter='url(%23gi)'/%3E%3Cline x1='80' y1='88' x2='80' y2='28' stroke='%236effc8' stroke-width='2.5' stroke-linecap='round' filter='url(%23gi)'/%3E%3Cline x1='80' y1='88' x2='30' y2='118' stroke='%236effc8' stroke-width='2.5' stroke-linecap='round' filter='url(%23gi)'/%3E%3Cline x1='80' y1='88' x2='130' y2='118' stroke='%236effc8' stroke-width='2.5' stroke-linecap='round' filter='url(%23gi)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<button class="btn-ic" id="btn-cfg" title="Ajustes">⚙</button>
+<button class="btn-ic" id="snd" title="Sonido">🔊</button>
+
+<!-- ━━━━━━ ONBOARDING FIXED ELEMENTS ━━━━━━ -->
+<div id="ob-hint-bar"><span id="ob-hint-text"></span></div>
+<div id="ob-arrow">↓</div>
+<div id="ob-arrow-vis">↓</div>
+<div id="ob-arrow-aud">↓</div>
+
+<!-- ━━━━━━ WELCOME (one-time) ━━━━━━ -->
+<div id="s-welcome" class="scr" style="justify-content:center;text-align:center;overflow-y:auto">
+  <div style="max-width:320px;width:100%;padding:40px 0 32px">
+    <div class="wel-item w1" style="margin-bottom:28px">
+      <svg id="logo-vertical" width="280" height="320" viewBox="0 0 280 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow-vertical">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <circle cx="140" cy="52" r="5.5" fill="#6effc8" filter="url(#glow-vertical)"/>
+        <circle cx="72" cy="168" r="5.5" fill="#6effc8" filter="url(#glow-vertical)"/>
+        <circle cx="208" cy="168" r="5.5" fill="#6effc8" filter="url(#glow-vertical)"/>
+        <circle cx="140" cy="130" r="5.5" fill="#6effc8" filter="url(#glow-vertical)"/>
+        <line x1="140" y1="52" x2="72" y2="168" stroke="#6effc8" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-vertical)"/>
+        <line x1="140" y1="52" x2="208" y2="168" stroke="#6effc8" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-vertical)"/>
+        <line x1="72" y1="168" x2="208" y2="168" stroke="#6effc8" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-vertical)"/>
+        <line x1="140" y1="130" x2="140" y2="52" stroke="#6effc8" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-vertical)"/>
+        <line x1="140" y1="130" x2="72" y2="168" stroke="#6effc8" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-vertical)"/>
+        <line x1="140" y1="130" x2="208" y2="168" stroke="#6effc8" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-vertical)"/>
+        <text x="140" y="222" font-family="'Rajdhani', 'Futura', 'Century Gothic', sans-serif" font-weight="700" font-size="52" fill="#6effc8" text-anchor="middle" letter-spacing="8" filter="url(#glow-vertical)">KORTEX</text>
+        <line x1="90" y1="238" x2="190" y2="238" stroke="#6effc8" stroke-width="0.8" opacity="0.4"/>
+        <text x="140" y="262" font-family="'Exo 2', 'Futura', 'Century Gothic', sans-serif" font-weight="300" font-size="13" fill="#6effc8" text-anchor="middle" letter-spacing="5" opacity="0.75">INGENIERÍA MENTAL</text>
+      </svg>
+    </div>
+    <p class="wel-item w2" style="font-size:.88rem;color:var(--muted);line-height:1.85;margin-bottom:24px;text-align:left">
+      ¿Te pasa que empiezas algo y a los 5 minutos ya estás revisando el celular? ¿Que lees un párrafo y tienes que volverlo a leer porque se te fue? No eres solo tú.
+    </p>
+    <div style="text-align:left;margin-bottom:22px">
+      <p class="wel-item w3" style="font-size:.84rem;color:var(--text);line-height:1.9;margin-bottom:12px">— TikTok, Reels y el scroll infinito entrenan al cerebro a esperar recompensa cada 15 segundos.</p>
+      <p class="wel-item w4" style="font-size:.84rem;color:var(--text);line-height:1.9;margin-bottom:12px">— Con el tiempo, tareas que requieren foco sostenido se sienten imposibles.</p>
+      <p class="wel-item w5" style="font-size:.84rem;color:var(--text);line-height:1.9">— Estudios recientes muestran que el uso frecuente de video corto se asocia a menor memoria de trabajo y peor concentración.*</p>
+    </div>
+    <p class="wel-item w5" style="font-size:.84rem;color:var(--text);line-height:1.7;margin-bottom:14px;text-align:left">KORTEX es un juego. Cortito. Diseñado para entrenar lo contrario: mantener información activa sin distraerte. 8 minutos al día.</p>
+    <p class="wel-item w5" style="font-size:.66rem;color:var(--muted);line-height:1.6;margin-bottom:22px;text-align:left">*Meta-análisis reciente con ~100,000 participantes. No somos científicos; somos un juego. Pero la evidencia existe.</p>
+    <button class="btn-primary-full wel-item w6" id="btn-welcome" disabled style="max-width:280px;margin:0 auto">Probar (dura 2 minutos)</button>
+  </div>
+</div>
+
+<!-- ━━━━━━ MODE INTRO OVERLAY ━━━━━━ -->
+<div id="s-mode-intro" class="scr">
+  <div style="height:clamp(36px,7vh,60px)"></div>
+  <div style="width:100%;max-width:340px">
+    <div class="badge badge-n" id="mi-badge" style="display:inline-block;margin-bottom:14px">N-Back</div>
+    <h2 id="mi-title" style="font-size:1.4rem;font-weight:300;margin-bottom:12px;color:var(--text)"></h2>
+    <p id="mi-about" style="color:var(--muted);font-size:.87rem;line-height:1.75;margin-bottom:22px"></p>
+    <ol id="mi-steps" style="color:var(--muted);font-size:.86rem;line-height:1.9;padding-left:20px;margin-bottom:28px"></ol>
+    <button class="btn btn-p" id="btn-mi-start" style="width:220px">Listo, jugar.</button>
+  </div>
+</div>
+
+<!-- ━━━━━━ MENU ━━━━━━ -->
+<div id="s-menu" class="scr">
+
+  <!-- ── Hero ── -->
+  <div class="menu-hero">
+    <div class="hero-topbar">
+      <div class="hero-logo-area">
+        <svg id="logo-horizontal" width="200" height="47" viewBox="0 0 340 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="glow-horizontal">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <circle cx="40" cy="12" r="3.5" fill="#6effc8" filter="url(#glow-horizontal)"/>
+          <circle cx="14" cy="58" r="3.5" fill="#6effc8" filter="url(#glow-horizontal)"/>
+          <circle cx="66" cy="58" r="3.5" fill="#6effc8" filter="url(#glow-horizontal)"/>
+          <circle cx="40" cy="42" r="3.5" fill="#6effc8" filter="url(#glow-horizontal)"/>
+          <line x1="40" y1="12" x2="14" y2="58" stroke="#6effc8" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-horizontal)"/>
+          <line x1="40" y1="12" x2="66" y2="58" stroke="#6effc8" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-horizontal)"/>
+          <line x1="14" y1="58" x2="66" y2="58" stroke="#6effc8" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-horizontal)"/>
+          <line x1="40" y1="42" x2="40" y2="12" stroke="#6effc8" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-horizontal)"/>
+          <line x1="40" y1="42" x2="14" y2="58" stroke="#6effc8" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-horizontal)"/>
+          <line x1="40" y1="42" x2="66" y2="58" stroke="#6effc8" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-horizontal)"/>
+          <line x1="90" y1="14" x2="90" y2="66" stroke="#6effc8" stroke-width="0.8" opacity="0.3"/>
+          <text x="108" y="52" font-family="'Rajdhani', 'Futura', 'Century Gothic', sans-serif" font-weight="700" font-size="42" fill="#6effc8" letter-spacing="6" filter="url(#glow-horizontal)">KORTEX</text>
+        </svg>
+      </div>
+    </div>
+    <!-- Streak card -->
+    <div class="hero-streak-card">
+      <div class="streak-left">
+        <svg class="streak-widget-bg" width="80" height="80" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="28" r="4" fill="#6effc8"/>
+          <circle cx="20" cy="96" r="4" fill="#6effc8"/>
+          <circle cx="100" cy="96" r="4" fill="#6effc8"/>
+          <circle cx="60" cy="70" r="4" fill="#6effc8"/>
+          <line x1="60" y1="28" x2="20" y2="96" stroke="#6effc8" stroke-width="2"/>
+          <line x1="60" y1="28" x2="100" y2="96" stroke="#6effc8" stroke-width="2"/>
+          <line x1="20" y1="96" x2="100" y2="96" stroke="#6effc8" stroke-width="2"/>
+          <line x1="60" y1="70" x2="60" y2="28" stroke="#6effc8" stroke-width="2"/>
+          <line x1="60" y1="70" x2="20" y2="96" stroke="#6effc8" stroke-width="2"/>
+          <line x1="60" y1="70" x2="100" y2="96" stroke="#6effc8" stroke-width="2"/>
+        </svg>
+        <div class="streak-num" id="streak-num">0</div>
+      </div>
+      <div class="streak-right">
+        <div class="streak-lbl">DÍAS ACTIVOS SEGUIDOS</div>
+        <div class="week-row" id="week-row">
+          <div class="week-dot"></div>
+          <div class="week-dot"></div>
+          <div class="week-dot"></div>
+          <div class="week-dot"></div>
+          <div class="week-dot"></div>
+          <div class="week-dot"></div>
+          <div class="week-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-fade"></div>
+  </div>
+
+  <!-- ── Body ── -->
+  <div class="menu-body">
+    <!-- Hint banner -->
+    <div id="hint-banner" class="hint-banner" style="display:none;margin-bottom:12px">
+      ¿Primera vez? Hazlo guiado → <strong>(2 min)</strong>
+    </div>
+
+    <!-- All mode cards — ID kept for JS selector -->
+    <div id="mode-cards">
+      <!-- Featured: Dual N-Back -->
+      <div class="mode-card mode-feat" data-mode="dual">
+        <div class="mode-feat-body">
+          <div class="mode-feat-badge">EL MÁS ESTUDIADO</div>
+          <div class="mode-feat-name">Dual N-Back</div>
+          <div class="mode-card-desc">El modo clásico. Dos canales al tiempo. El que cambia cerebros.</div>
+        </div>
+        <div class="mode-feat-icon">
+          <svg width="40" height="40" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="80" cy="28" r="5" fill="#6effc8"/>
+            <circle cx="32" cy="116" r="5" fill="#6effc8"/>
+            <circle cx="128" cy="116" r="5" fill="#6effc8"/>
+            <circle cx="80" cy="86" r="5" fill="#6effc8"/>
+            <line x1="80" y1="28" x2="32" y2="116" stroke="#6effc8" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="80" y1="28" x2="128" y2="116" stroke="#6effc8" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="32" y1="116" x2="128" y2="116" stroke="#6effc8" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="80" y1="86" x2="80" y2="28" stroke="#6effc8" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="80" y1="86" x2="32" y2="116" stroke="#6effc8" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="80" y1="86" x2="128" y2="116" stroke="#6effc8" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 2×2 grid -->
+      <div class="mode-grid-inner">
+        <div class="mode-card on" data-mode="nback">
+          <div class="mode-icon-box">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <rect x="0.5" y="0.5" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+              <rect x="6.75" y="0.5" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+              <rect x="13" y="0.5" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+              <rect x="0.5" y="6.75" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+              <rect x="6.75" y="6.75" width="4.5" height="4.5" rx="1" fill="currentColor" opacity=".35"/>
+              <rect x="13" y="6.75" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+              <rect x="0.5" y="13" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+              <rect x="6.75" y="13" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+              <rect x="13" y="13" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="mode-card-name">N-Back</div>
+          <div class="mode-card-desc">El juego base. Fácil de aprender, difícil de dominar.</div>
+        </div>
+        <div class="mode-card" data-mode="span">
+          <div class="mode-icon-box">
+            <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
+              <rect x="1" y="3" width="8" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+              <rect x="11" y="3" width="8" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+              <line x1="9" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="mode-card-name">Span Complejo</div>
+          <div class="mode-card-desc">Resuelve cuentas y memoriza letras a la vez. El más adictivo.</div>
+        </div>
+        <div class="mode-card" data-mode="emotion">
+          <div class="mode-icon-box">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="9" cy="9" r="7.5" stroke="currentColor" stroke-width="1.8" fill="none"/>
+              <circle cx="6.5" cy="7.5" r="1.2" fill="currentColor"/>
+              <circle cx="11.5" cy="7.5" r="1.2" fill="currentColor"/>
+              <path d="M5.5 11.5 Q9 14.5 12.5 11.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            </svg>
+          </div>
+          <div class="mode-card-name">Modo Emocional</div>
+          <div class="mode-card-desc">Caras en vez de cuadros. Más humano, más difícil.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:80px"></div>
+  </div>
+</div>
+
+<!-- ━━━━━━ MODE CONFIG ━━━━━━ -->
+<div id="s-mode-config" class="scr" style="justify-content:flex-start;padding-top:0">
+  <div class="sticky-hdr">
+    <button class="btn-ic" id="btn-mode-back">←</button>
+    <span id="mc-mode-name" style="font-size:1.05rem;font-weight:600;margin-left:8px;font-family:'Rajdhani',sans-serif;letter-spacing:.04em"></span>
+  </div>
+  <div style="width:100%;max-width:360px;padding:16px 0 0">
+    <p id="mc-mode-desc" style="font-size:.86rem;color:var(--muted);line-height:1.7;margin-bottom:24px"></p>
+    
+    <div class="sec">Identificación</div>
+    <div style="margin-bottom:20px">
+      <input type="text" id="player-name" placeholder="Tu Nombre o Fraternidad" style="width:100%;height:46px;background:var(--surf);border:1.5px solid var(--bdr);border-radius:var(--r);color:var(--text);padding:0 16px;font-family:inherit;font-size:16px;outline:none;transition:border-color .15s;">
+    </div>
+
+    <div id="nback-config">
+      <div class="sec">Nivel</div>
+      <div class="lsel" id="mlvl" style="margin-bottom:0">
+        <button class="lb on" data-n="2">2-Back</button>
+        <button class="lb"    data-n="3">3-Back</button>
+      </div>
+      <div class="config-divider" style="height:1px;background:var(--bdr);margin:14px 0"></div>
+      <div class="sec">Duración</div>
+      <div class="lsel" id="mdur">
+        <button class="lb"    data-dur="1">1 min (Experimento)</button>
+        <button class="lb"    data-dur="8">8 min</button>
+        <button class="lb on" data-dur="10">10 min</button>
+        <button class="lb"    data-dur="15">15 min</button>
+      </div>
+    </div>
+    <div id="span-config" style="display:none">
+      <p style="font-size:.84rem;color:var(--muted);line-height:1.75">La dificultad se ajusta automáticamente según tu rendimiento.<br>8 rondas por sesión.</p>
+    </div>
+    <div style="height:28px"></div>
+    <button class="btn-primary-full" id="btn-start">Comenzar sesión</button>
+    <div style="height:8px"></div>
+    <button class="secondary-btn" id="btn-tuto" style="width:100%;height:46px">Cómo jugar antes de empezar</button>
+  </div>
+</div>
+
+<!-- ━━━━━━ GAME (N-Back / Emotion / Resilience) ━━━━━━ -->
+<div id="s-game" class="scr">
+  <div style="height:clamp(10px,2.5vh,20px)"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:320px;margin-bottom:10px">
+    <div style="display:flex;gap:6px;align-items:center">
+      <span class="badge badge-n" id="g-lvl">2-Back</span>
+      <span class="badge badge-warm" id="g-warm" style="display:none">Calentamiento</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="g-score" style="display:none;font-size:.7rem;color:var(--prime);font-variant-numeric:tabular-nums;font-weight:600"></span>
+      <span id="g-time" style="font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:38px;text-align:right">10:00</span>
+    </div>
+  </div>
+  <div class="prog-track" style="margin-bottom:8px"><div class="prog-fill" id="g-prog"></div></div>
+  <!-- Pace indicator -->
+  <div class="pace-row">Ritmo actual: <span id="g-pace">2.5</span>s</div>
+  <!-- Grid (N-Back + Resilience) -->
+  <div class="grid" id="grid"></div>
+  <!-- Face display (Emotion mode) -->
+  <div id="face-display"></div>
+  <!-- Status -->
+  <div style="height:32px;display:flex;align-items:center;justify-content:center;margin-top:8px">
+    <div class="status" id="g-stat"></div>
+  </div>
+  <button class="mbtn" id="mbtn" disabled>COINCIDE</button>
+  <div style="height:14px"></div>
+  <button class="txt-btn" id="btn-quit" style="position:relative;z-index:5">Salir</button>
+</div>
+
+<!-- ━━━━━━ DUAL N-BACK ━━━━━━ -->
+<div id="s-dual" class="scr">
+  <div style="height:clamp(10px,2.5vh,20px)"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:320px;margin-bottom:10px">
+    <span class="badge badge-n" id="d-lvl">2-Back</span>
+    <span class="badge badge-warm" id="d-warm" style="display:none">Calentamiento</span>
+    <span id="d-time" style="font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:38px;text-align:right">10:00</span>
+  </div>
+  <div class="prog-track" style="margin-bottom:8px"><div class="prog-fill" id="d-prog"></div></div>
+  <div class="pace-row">Ritmo actual: <span id="d-pace">2.5</span>s</div>
+  <div class="grid" id="d-grid"></div>
+  <div id="d-letter" style="display:none"></div>
+  <div style="height:28px;display:flex;align-items:center;justify-content:center;margin-top:8px">
+    <div class="status" id="d-stat"></div>
+  </div>
+  <div class="dual-btns" style="justify-content:center">
+    <button class="dbtn" id="btn-match-pos" disabled>
+      <span class="dbtn-sub">Posición (A)</span>
+      Ubicación
+    </button>
+    <button class="dbtn" id="btn-match-sound" disabled>
+      <span class="dbtn-sub">Sonido (L)</span>
+      Sonido
+    </button>
+  </div>
+  <div style="height:10px"></div>
+  <button class="txt-btn" id="d-quit" style="position:relative;z-index:5">Salir</button>
+</div>
+
+<!-- ━━━━━━ PHRASE (auto-dismiss, 2s) ━━━━━━ -->
+<div id="s-phrase" class="scr">
+  <p id="phrase-text"></p>
+</div>
+
+<!-- ━━━━━━ SPAN COMPLEJO ━━━━━━ -->
+<div id="s-span" class="scr">
+  <div style="height:clamp(10px,2.5vh,20px)"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:320px;margin-bottom:10px">
+    <span class="badge badge-n" id="sp-lvl">Span 3</span>
+    <span style="font-size:.78rem;color:var(--muted)" id="sp-round">Ronda 1/8</span>
+  </div>
+  <div class="prog-track" style="margin-bottom:20px"><div class="prog-fill" id="sp-prog"></div></div>
+  <!-- Math area -->
+  <div id="sp-math-area">
+    <div class="sp-eq" id="sp-eq">3 + 4 = 7 ?</div>
+    <div style="height:20px;text-align:center;margin-top:8px;font-size:.72rem;color:var(--muted)" id="sp-timer-bar"></div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:18px">
+      <button class="btn btn-p" id="sp-true"  style="width:130px;font-size:.9rem">Verdadero</button>
+      <button class="btn btn-o" id="sp-false" style="width:130px;font-size:.9rem">Falso</button>
+    </div>
+  </div>
+  <!-- Letter flash -->
+  <div id="sp-letter-area" style="display:none">
+    <div class="sp-letter" id="sp-letter">A</div>
+  </div>
+  <!-- Trial dots -->
+  <div id="sp-dots" style="display:flex;gap:7px;justify-content:center;margin-top:18px;min-height:16px"></div>
+  <!-- Status -->
+  <div style="height:26px;display:flex;align-items:center;justify-content:center;margin-top:8px">
+    <div class="status" id="sp-stat"></div>
+  </div>
+  <button class="txt-btn" id="sp-quit" style="margin-top:8px;position:relative;z-index:5">Salir</button>
+</div>
+
+<!-- ━━━━━━ RESULTS ━━━━━━ -->
+<div id="s-results" class="scr">
+  <div style="height:clamp(28px,6vh,50px)"></div>
+  <div style="text-align:center;margin-bottom:20px">
+    <div style="font-size:1.4rem;font-weight:300;letter-spacing:.04em">Terminaste tu sesión</div>
+    <div style="font-size:.74rem;color:var(--muted);margin-top:4px;letter-spacing:.08em" id="r-lvl"></div>
+    <div id="r-msg" style="font-size:.84rem;color:var(--text);margin-top:10px;line-height:1.6;max-width:280px;margin-left:auto;margin-right:auto"></div>
+  </div>
+  <!-- Accuracy bar -->
+  <div style="width:100%;max-width:320px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:7px">
+      <span style="font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Índice de Adaptabilidad</span>
+      <span style="font-size:1.2rem;font-weight:300;color:var(--prime)" id="r-pct">0%</span>
+    </div>
+    <div style="height:5px;background:var(--bdr);border-radius:3px;overflow:hidden">
+      <div id="r-bar" style="height:100%;background:var(--prime);width:0%;transition:width 1.2s cubic-bezier(.4,0,.2,1)"></div>
+    </div>
+  </div>
+  <!-- Speed metric -->
+  <div id="r-speed-row" style="width:100%;max-width:320px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:.74rem;color:var(--muted)" id="r-speed-lbl">Agilidad en Toma de Decisiones</span>
+    <span id="r-interval" style="font-size:.96rem;color:var(--text);font-weight:600">2.5 s/turno</span>
+  </div>
+  <!-- Stat cards -->
+  <div class="rgrid" id="r-cards"></div>
+  <!-- Recommendation -->
+  <div id="r-rec" style="display:none;width:100%;max-width:320px;margin-top:12px"></div>
+  <div style="height:18px"></div>
+  <button class="btn btn-p" id="btn-again">Jugar de nuevo</button>
+  <div style="height:8px"></div>
+  <button class="btn btn-o" id="btn-tomenu">Menú principal</button>
+  <div style="height:44px"></div>
+</div>
+
+<!-- ━━━━━━ STATS ━━━━━━ -->
+<div id="s-stats" class="scr" style="justify-content:flex-start;padding-top:0">
+  <div class="sticky-hdr">
+    <button class="btn-ic" id="btn-back">←</button>
+    <span style="font-size:1.05rem;font-weight:600;margin-left:8px">Progreso</span>
+  </div>
+
+  <!-- 1. Level header -->
+  <div style="width:100%;max-width:360px;margin-top:22px;margin-bottom:18px;text-align:center">
+    <div id="st-level-label" style="font-family:'Rajdhani',sans-serif;font-size:2.6rem;font-weight:700;color:var(--prime);line-height:1">NIVEL 1</div>
+    <div id="st-level-sub" style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:3px;margin-bottom:12px">0 / 5 sesiones para el siguiente nivel</div>
+    <div style="height:6px;background:var(--bdr);border-radius:3px;overflow:hidden;max-width:220px;margin:0 auto 10px">
+      <div id="st-xp-fill" style="height:100%;background:var(--prime);border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1);width:0%"></div>
+    </div>
+    <div style="font-size:.74rem;color:var(--muted)"><span id="st-total-num" style="font-size:1.3rem;font-weight:300;color:var(--text)">0</span> sesiones completadas</div>
+  </div>
+
+  <!-- 2. Streak block -->
+  <div style="width:100%;max-width:360px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:14px;display:flex;align-items:center;gap:16px">
+    <div id="st-streak-icon" style="font-size:2rem;flex-shrink:0;line-height:1">🔥</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:1.3rem;font-weight:300;color:var(--prime);line-height:1"><span id="st-streak">0</span> <span style="font-size:.88rem;color:var(--muted);font-weight:400">días seguidos</span></div>
+      <div id="st-streak-sub" style="font-size:.72rem;color:var(--muted);margin-top:5px"></div>
+    </div>
+  </div>
+
+  <!-- 3. Metric cards (horizontal scroll) -->
+  <div style="width:100%;max-width:360px;margin-bottom:16px">
+    <div class="sec">Esta semana</div>
+    <div id="st-metric-scroll" style="display:flex;gap:8px;overflow-x:auto;padding:0 0 4px;scrollbar-width:none">
+      <div class="st-metric-card">
+        <div class="st-mc-val" id="st-mc-acc-val">—</div>
+        <div class="st-mc-lbl">Precisión prom. 7 días</div>
+        <div class="st-mc-delta" id="st-mc-acc-delta"></div>
+      </div>
+      <div class="st-metric-card">
+        <div class="st-mc-val" id="st-mc-pace-val">—</div>
+        <div class="st-mc-lbl">Ritmo más rápido</div>
+        <div class="st-mc-delta" id="st-mc-pace-delta"></div>
+      </div>
+      <div class="st-metric-card">
+        <div class="st-mc-val" id="st-mc-nback-val">—</div>
+        <div class="st-mc-lbl">Mejor N-Back logrado</div>
+        <div class="st-mc-delta" id="st-mc-nback-delta"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode tabs -->
+  <div style="display:flex;gap:6px;width:100%;max-width:360px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none" id="st-tabs">
+    <button class="cbtn on" data-stab="nback">⊞ N-Back</button>
+    <button class="cbtn" data-stab="span">◎ Span</button>
+    <button class="cbtn" data-stab="emotion">◉ Emocional</button>
+    <button class="cbtn" data-stab="dual">⊞⊞ Dual</button>
+  </div>
+
+  <!-- Trend -->
+  <div style="width:100%;max-width:360px;margin-bottom:14px">
+    <div id="st-trend-row" style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 16px;display:none;justify-content:space-between;align-items:center">
+      <span style="font-size:.72rem;color:var(--muted);letter-spacing:.06em">Tendencia · últimas sesiones</span>
+      <span id="st-trend" style="font-size:.88rem;font-weight:600"></span>
+    </div>
+  </div>
+
+  <!-- Per-level table -->
+  <div style="width:100%;max-width:360px;margin-bottom:16px">
+    <div class="sec" id="st-table-title">Por nivel</div>
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden">
+      <table class="stbl"><thead id="st-head"></thead><tbody id="st-body"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Recs -->
+  <div id="st-recs" style="width:100%;max-width:360px;margin-bottom:16px;display:none">
+    <div class="sec">Recomendación</div>
+    <div id="st-rec-body"></div>
+  </div>
+
+  <!-- Chart -->
+  <div style="width:100%;max-width:360px;margin-bottom:16px">
+    <div class="sec">Evolución</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px" id="cbtns">
+      <button class="cbtn on" data-cv="2">2-Back</button>
+      <button class="cbtn"    data-cv="3">3-Back</button>
+    </div>
+    <canvas id="chart" style="width:100%;display:block;border-radius:var(--r);border:1px solid var(--bdr)"></canvas>
+    <div id="chart-empty" style="display:none;text-align:center;color:var(--muted);font-size:.82rem;padding:24px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r)">Sin suficientes datos</div>
+  </div>
+
+  <!-- Achievements -->
+  <div style="width:100%;max-width:360px;margin-bottom:80px">
+    <div class="sec">Logros</div>
+    <div id="st-achievements"></div>
+  </div>
+</div>
+
+<!-- ━━━━━━ SETTINGS ━━━━━━ -->
+<div id="s-settings" class="scr" style="justify-content:flex-start;padding-top:0">
+  <div class="sticky-hdr">
+    <button class="btn-ic" id="btn-cfg-back">←</button>
+    <span style="font-size:1.05rem;font-weight:600;margin-left:8px">Ajustes</span>
+  </div>
+
+  <div class="set-sect" style="margin-top:20px">
+    <div class="sec">Entorno de práctica</div>
+    <p class="set-desc">Ruido de fondo que aumenta la dificultad de concentración real.</p>
+    <div class="lsel" id="noise-sel">
+      <button class="lb on" data-noise="silence">Silencio</button>
+      <button class="lb"    data-noise="cafe">Cafetería</button>
+      <button class="lb"    data-noise="meeting">Reuniones</button>
+    </div>
+    <div id="noise-note">Silencio — para comenzar o días de alta carga cognitiva.</div>
+  </div>
+
+  <div class="set-sect">
+    <div class="sec">Señuelos</div>
+    <p class="set-desc">Estímulos casi-coincidentes que inducen error voluntariamente.</p>
+    <div class="lsel" id="lure-sel">
+      <button class="lb"    data-lure="0">Ninguno</button>
+      <button class="lb"    data-lure="10">10%</button>
+      <button class="lb on" data-lure="20">20%</button>
+      <button class="lb"    data-lure="30">30%</button>
+    </div>
+  </div>
+
+  <div class="set-sect">
+    <div class="sec">Sonido binaural</div>
+    <p class="set-desc">Tonos de foco alfa. Más eficaz con auriculares.</p>
+    <div class="lsel" id="binaural-sel">
+      <button class="lb on" data-bin="on">Activado</button>
+      <button class="lb"    data-bin="off">Desactivado</button>
+    </div>
+  </div>
+
+  <div class="set-sect">
+    <div class="sec">Dual N-Back — canal auditivo</div>
+    <p class="set-desc">Si no puedes usar audio, la letra aparece brevemente en pantalla en lugar de reproducirse como voz.</p>
+    <div class="lsel" id="dual-audio-sel">
+      <button class="lb on" data-daudio="on">Voz activada</button>
+      <button class="lb"    data-daudio="off">Solo visual</button>
+    </div>
+  </div>
+
+  <div class="set-sect">
+    <div class="sec">Datos de sesión</div>
+    <p class="set-desc">Exporta o importa tu historial de sesiones en formato JSON.</p>
+    <div style="display:flex;gap:8px">
+      <button class="secondary-btn" id="btn-export-data" style="flex:1;height:44px">Exportar JSON</button>
+      <button class="secondary-btn" id="btn-import-data" style="flex:1;height:44px">Importar JSON</button>
+    </div>
+    <input type="file" id="import-file-input" accept=".json" style="display:none">
+    <div id="import-status" style="font-size:.74rem;color:var(--muted);margin-top:8px;min-height:18px"></div>
+  </div>
+
+  <div style="height:44px"></div>
+</div>
+
+<!-- ━━━━━━ TUTORIAL ━━━━━━ -->
+<div id="s-tuto" class="scr" style="justify-content:flex-start;padding-top:0">
+  <div class="sticky-hdr">
+    <button class="btn-ic" id="tuto-back">←</button>
+    <span style="font-size:1.05rem;font-weight:600;margin-left:8px">Cómo jugar</span>
+  </div>
+  <div style="width:100%;max-width:340px;margin-top:20px">
+    <!-- Title + text (changes per panel) -->
+    <div id="tuto-content"></div>
+    <!-- Shared 3×3 grid -->
+    <div class="tgrid" id="tgrid" style="display:none"></div>
+    <!-- Match label (panels 0–1) -->
+    <div id="tuto-label" style="display:none;text-align:center;font-size:.76rem;min-height:20px;margin-top:4px;transition:color .15s"></div>
+    <!-- Panel 2: interactive mini-game controls -->
+    <div id="tuto-match-area" style="display:none">
+      <div style="height:20px"></div>
+      <button class="mbtn" id="tuto-match-btn" disabled style="width:min(260px,calc(100vw - 72px))">COINCIDE</button>
+      <div id="tuto-feedback" style="font-size:.78rem;text-align:center;min-height:20px;margin-top:8px;color:var(--muted)"></div>
+    </div>
+    <!-- Panel 2: end state -->
+    <div id="tuto-done" style="display:none;margin-top:22px;text-align:center">
+      <p style="font-size:.9rem;color:var(--text);margin-bottom:18px;line-height:1.6">Listo. Ya sabes jugar. ¿Empezamos de verdad?</p>
+      <button class="btn-primary-full" id="tuto-start-btn" style="max-width:240px;margin:0 auto;height:52px">Empezar sesión real →</button>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:340px;margin-top:28px;margin-bottom:8px">
+    <button class="txt-btn" id="tuto-prev" style="visibility:hidden">← Anterior</button>
+    <div class="tuto-dots" id="tuto-dots"></div>
+    <button class="txt-btn" id="tuto-next">Siguiente →</button>
+  </div>
+  <div style="height:44px"></div>
+</div>
+
+
+<!-- ━━━━━━ BOTTOM NAV ━━━━━━ -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="nav-item on" id="nav-inicio">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    <span class="nav-label">Inicio</span>
+  </button>
+  <button class="nav-item" id="nav-progreso">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <span class="nav-label">Progreso</span>
+  </button>
+  <button class="nav-item" id="nav-ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <span class="nav-label">Ajustes</span>
+  </button>
+</nav>
+
+<!-- ━━━━━━ OVERLAY: Span Recall ━━━━━━ -->
+<div id="overlay-recall" class="ovl" style="align-items:flex-start;overflow-y:auto;padding-top:40px">
+  <div style="width:100%;max-width:340px;margin:0 auto">
+    <div style="font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Recuerda las letras en orden</div>
+    <div id="recall-slots" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px"></div>
+    <div id="recall-keyboard"></div>
+    <div style="height:16px"></div>
+    <button class="btn btn-p" id="btn-recall-submit" style="width:200px">Confirmar</button>
+    <div style="height:32px"></div>
+  </div>
+</div>
+
+<script src="js/app.js" defer></script>
+</body>
+</html>
