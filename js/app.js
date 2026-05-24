@@ -152,7 +152,6 @@ const Snd = (() => {
 
   return {
     init()      { if (on) startAmbient(); },
-    unlock()    { try { ac(); } catch(e) {} },
     stopAmb()   { fadeMaster(0,1.8); },
     resumeAmb() { if(!on) return; !started ? startAmbient() : fadeMaster(.38,1.6); },
     cell()      { shot(528,.22,.09); },
@@ -928,40 +927,9 @@ function setOBHint(txt, col) {
 }
 
 function showOBArrow(type) { // 'center' | 'vis' | 'aud' | null
-  const arrow = $('ob-arrow');
-  const arrowVis = $('ob-arrow-vis');
-  const arrowAud = $('ob-arrow-aud');
-  arrow.style.display    = 'none';
-  arrowVis.style.display = 'none';
-  arrowAud.style.display = 'none';
-  if (type === 'center') {
-    const target = $('mbtn') || $('tuto-match-btn');
-    if (target) {
-      const rect = target.getBoundingClientRect();
-      arrow.style.left = (rect.left + rect.width / 2 - 14) + 'px';
-      arrow.style.top = (rect.top - 38) + 'px';
-      arrow.style.bottom = 'auto';
-      arrow.style.display = 'block';
-    }
-  } else if (type === 'vis') {
-    const target = $('btn-match-pos');
-    if (target) {
-      const rect = target.getBoundingClientRect();
-      arrowVis.style.left = (rect.left + rect.width / 2 - 14) + 'px';
-      arrowVis.style.top = (rect.top - 38) + 'px';
-      arrowVis.style.bottom = 'auto';
-      arrowVis.style.display = 'block';
-    }
-  } else if (type === 'aud') {
-    const target = $('btn-match-sound');
-    if (target) {
-      const rect = target.getBoundingClientRect();
-      arrowAud.style.left = (rect.left + rect.width / 2 - 14) + 'px';
-      arrowAud.style.top = (rect.top - 38) + 'px';
-      arrowAud.style.bottom = 'auto';
-      arrowAud.style.display = 'block';
-    }
-  }
+  $('ob-arrow').style.display    =(type==='center')?'block':'none';
+  $('ob-arrow-vis').style.display=(type==='vis')   ?'block':'none';
+  $('ob-arrow-aud').style.display=(type==='aud')   ?'block':'none';
 }
 
 function genOBSeq(n, items, activeTurns) {
@@ -1985,29 +1953,17 @@ window.addEventListener('resize',()=>{ if($('s-stats').classList.contains('on'))
 /* ══════════════════════════════════════════
    15. BOOTSTRAP
 ══════════════════════════════════════════ */
-// Enable CSS :active styles on iOS Safari
-document.body.addEventListener('touchstart', () => {}, {passive: true});
-
-// Sync sound icon
-$('snd').textContent=Snd.on?'🔊':'🔇';
-
 // Apply stored binaural setting
 if(!CFG.get('binauralOn') && Snd.on){ Snd.toggle(); $('snd').textContent='🔇'; }
 
-// Unlock AudioContext on first user gesture (highly compatible touch/click unlocking)
-let _audioUnlocked = false;
-const unlockAudio = () => {
-  if (_audioUnlocked) return;
-  _audioUnlocked = true;
-  Snd.unlock();
-  if (CFG.get('binauralOn')) {
-    Snd.init();
-  }
-  document.removeEventListener('touchstart', unlockAudio);
-  document.removeEventListener('click', unlockAudio);
-};
-document.addEventListener('touchstart', unlockAudio, { passive: true });
-document.addEventListener('click', unlockAudio, { passive: true });
+// Auto-start binaural on first user gesture (Web Audio API requires user activation)
+let _audioReady = false;
+document.body.addEventListener('pointerdown', () => {
+  if(!_audioReady){ _audioReady=true; if(CFG.get('binauralOn')) Snd.init(); }
+}, { once:true, passive:true });
+
+// Sync sound icon
+$('snd').textContent=Snd.on?'🔊':'🔇';
 
 // Sync settings selectors to stored values
 (()=>{
