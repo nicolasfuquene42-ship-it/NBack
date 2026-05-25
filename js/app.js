@@ -1576,6 +1576,58 @@ function drawDualChart(n){
 let tutStep = 0;
 let tutActive = false;
 
+const TUTORIAL_DATA = [
+  { pos: 0, letter: 'A', name: 'Sup-Izq', arrow: '↖' },
+  { pos: 4, letter: 'F', name: 'Centro', arrow: '◼' },
+  { pos: 0, letter: 'R', name: 'Sup-Izq', arrow: '↖' },
+  { pos: 8, letter: 'F', name: 'Inf-Der', arrow: '↘' },
+  { pos: 5, letter: 'X', name: 'Der', arrow: '➔' }
+];
+
+function renderTutorialMiniGrid(currentStep) {
+  let html = `<div class="t-mini-grid-container">`;
+  for (let i = 0; i < 5; i++) {
+    const stepNum = i + 1;
+    const data = TUTORIAL_DATA[i];
+    
+    let cellClass = 't-mini-card';
+    if (stepNum === currentStep) {
+      cellClass += ' active-step';
+    } else if (stepNum < currentStep) {
+      cellClass += ' past-step';
+    } else {
+      cellClass += ' future-step';
+    }
+    
+    // Highlight comparisons
+    if (currentStep === 3 && (stepNum === 1 || stepNum === 3)) {
+      cellClass += ' comparison-highlight';
+    }
+    if (currentStep === 4 && (stepNum === 2 || stepNum === 4)) {
+      cellClass += ' comparison-highlight';
+    }
+    
+    let gridCellsHtml = '';
+    for (let g = 0; g < 9; g++) {
+      const isLit = (g === data.pos);
+      const litClass = isLit ? 'lit' : '';
+      gridCellsHtml += `<div class="t-mini-cell ${litClass}"></div>`;
+    }
+    
+    html += `
+      <div class="${cellClass}">
+        <div class="t-mini-step-lbl">T${stepNum}</div>
+        <div class="t-mini-matrix">
+          ${gridCellsHtml}
+        </div>
+        <div class="t-mini-desc">T${stepNum}: ${data.arrow} + '${data.letter}'</div>
+      </div>
+    `;
+  }
+  html += `</div>`;
+  return html;
+}
+
 function startInteractiveTutorial() {
   tutStep = 1;
   tutActive = true;
@@ -1585,11 +1637,11 @@ function startInteractiveTutorial() {
   const bp = $('t-btn-pos');
   const bs = $('t-btn-sound');
   if (bp) {
-    bp.classList.remove('blink-highlight', 'hit', 'miss', 'ready');
+    bp.className = 'dbtn';
     bp.disabled = false;
   }
   if (bs) {
-    bs.classList.remove('blink-highlight', 'hit', 'miss', 'ready');
+    bs.className = 'dbtn';
     bs.disabled = false;
   }
   
@@ -1644,9 +1696,7 @@ function runTutorialStep(step) {
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
         Aparece un cuadrado <strong>arriba a la izquierda</strong> y suena la letra <strong>"A"</strong>.
       </div>
-      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0;">
-        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.15); font-weight:600; font-size:0.8rem;">T1: ↖ (A)</div>
-      </div>
+      ${renderTutorialMiniGrid(1)}
       <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
         Aquí <strong>NO debes presionar nada</strong>. Es el primer paso del juego. Memoriza la posición y la letra, luego presiona [Siguiente].
       </div>
@@ -1669,10 +1719,7 @@ function runTutorialStep(step) {
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
         El cuadrado se mueve al <strong>centro</strong> y suena la letra <strong>"F"</strong>.
       </div>
-      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
-        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T1: ↖ (A)</div>
-        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.15); font-weight:600;">T2: ◼ (F)</div>
-      </div>
+      ${renderTutorialMiniGrid(2)}
       <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
         Tampoco debes presionar nada. Llevamos 2 turnos. Para comparar con "hace 2 turnos" (N=2), necesitamos esperar al Turno 3. Presiona [Siguiente].
       </div>
@@ -1708,11 +1755,7 @@ function runTutorialStep(step) {
         Ambos están <strong>arriba a la izquierda</strong>. ¡Coinciden!<br>
         (La letra "R" no coincide con "A", ignora el sonido).
       </div>
-      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
-        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.06); text-decoration: underline;">T1: ↖ (A)</div>
-        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T2: ◼ (F)</div>
-        <div style="border: 2px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.15); font-weight:600; animation: pulseGlow 1.2s infinite;">T3: ↖ (R)</div>
-      </div>
+      ${renderTutorialMiniGrid(3)}
       <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
         El juego está congelado. Presiona el botón <strong style="color:var(--prime)">UBICACIÓN</strong> ahora para marcar tu acierto y avanzar.
       </div>
@@ -1734,11 +1777,7 @@ function runTutorialStep(step) {
         En el Turno 2 escuchaste <strong>"F"</strong> y ahora también. ¡Coinciden!<br>
         (La posición cambió del centro a abajo-derecha, ignora la vista).
       </div>
-      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
-        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T2: (F)</div>
-        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T3: ↖ (R)</div>
-        <div style="border: 2px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.15); font-weight:600; animation: pulseGlow 1.2s infinite;">T4: ↘ (F)</div>
-      </div>
+      ${renderTutorialMiniGrid(4)}
       <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
         La pantalla está congelada. Presiona el botón <strong style="color:var(--prime)">SONIDO</strong> ahora para avanzar.
       </div>
@@ -1759,11 +1798,7 @@ function runTutorialStep(step) {
         Compara con el <strong>Turno 3</strong> (hace 2 pasos).<br>
         Posición previa: arriba-izquierda (ahora: derecha). Letra previa: "R" (ahora: "X"). No hay coincidencias.
       </div>
-      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
-        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T3: ↖ (R)</div>
-        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T4: ↘ (F)</div>
-        <div style="border: 1px solid var(--warn); padding: 4px 8px; border-radius: 6px; background: rgba(212,122,122,0.1); font-weight:600;">T5: ➔ (X)</div>
-      </div>
+      ${renderTutorialMiniGrid(5)}
       <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
         En este caso <strong>NO debes tocar ningún botón</strong>. En el juego real, simplemente dejas pasar el turno sin oprimir nada. Presiona [Siguiente].
       </div>
@@ -1813,11 +1848,7 @@ function handleTutorialInteraction(type) {
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
         Marcaste correctamente la coincidencia de posición (arriba a la izquierda).
       </div>
-      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
-        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.1); color: var(--prime);">T1: ↖ (A)</div>
-        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T2: ◼ (F)</div>
-        <div style="border: 2px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.2); font-weight:600; color: var(--prime);">T3: ↖ (R)</div>
-      </div>
+      ${renderTutorialMiniGrid(3)}
       <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
         El estímulo visual de hace 2 turnos coincidió con el actual. Presiona [Siguiente] para continuar.
       </div>
@@ -1846,11 +1877,7 @@ function handleTutorialInteraction(type) {
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
         Marcaste correctamente la coincidencia de sonido (la letra "F").
       </div>
-      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
-        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.1); color: var(--prime);">T2: (F)</div>
-        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T3: ↖ (R)</div>
-        <div style="border: 2px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.2); font-weight:600; color: var(--prime);">T4: ↘ (F)</div>
-      </div>
+      ${renderTutorialMiniGrid(4)}
       <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
         El estímulo auditivo de hace 2 turnos coincidió con el actual. Presiona [Siguiente] para continuar.
       </div>
@@ -2064,7 +2091,6 @@ $('snd').addEventListener('click',()=>{ Snd.init(); const on=Snd.toggle(); $('sn
 function openTutorial(){
   isTutorial = true;
   DB.markTutorSeen();
-  $('hint-banner').style.display='none';
   show('s-tutorial');
   startInteractiveTutorial();
 }
@@ -2211,5 +2237,5 @@ if(!DB.welcomeSeen()){
 } else {
   renderMenuStreak();
   show('s-menu');
-  if(!DB.tutorSeen()) $('hint-banner').style.display='block';
+  $('hint-banner').style.display='block';
 }
