@@ -2311,7 +2311,7 @@ if('serviceWorker' in navigator){
 // Decide initial screen
 if(!DB.welcomeSeen()){
   show('s-welcome');
-  setTimeout(()=>{ const b=$('btn-welcome'); if(b) b.disabled=false; },5200);
+  setTimeout(()=>{ const b=$('btn-welcome'); if(b) b.disabled=false; }, 500);
 } else {
   renderMenuStreak();
   show('s-menu');
