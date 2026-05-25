@@ -24,23 +24,44 @@ if (typeof firebase !== 'undefined') {
 }
 
 function enviarResultadosAFirebase(scoreData, modo) {
+  console.log("Intentando enviar datos a Firebase...", scoreData);
   try {
-    if (window.firebase) {
+    if (typeof firebase !== 'undefined') {
+      // Inicializar si no se ha hecho
+      if (!firebase.apps.length) {
+        const firebaseConfig = {
+          apiKey: "AIzaSyCNXJXQxYjZIXSNkjIlwfy-LHVGCnbEIgg",
+          authDomain: "nback-6b98c.firebaseapp.com",
+          databaseURL: "https://nback-6b98c-default-rtdb.firebaseio.com",
+          projectId: "nback-6b98c",
+          storageBucket: "nback-6b98c.firebasestorage.app",
+          messagingSenderId: "192232324393",
+          appId: "1:192232324393:web:512e2640aa81ffcde24b38",
+          measurementId: "G-JWHKE4154D"
+        };
+        firebase.initializeApp(firebaseConfig);
+      }
+
       if (!CURRENT_PLAYER_NAME) {
         const nameInput = $('player-name') ? $('player-name').value.trim() : '';
         CURRENT_PLAYER_NAME = nameInput || ('Anon_' + Math.floor(100 + Math.random() * 900));
       }
+
+      // Estructura de envío idéntica y compatible
       firebase.database().ref('partidas').push({
-        nombre: CURRENT_PLAYER_NAME || 'Anon_712',
+        nombre: scoreData.nombre || CURRENT_PLAYER_NAME || 'Jugador_Anónimo',
         adaptabilidad: scoreData.accuracy || 0,
         friccion: scoreData.falsePositives || 0,
         agilidad: scoreData.avgResponseTime || 0,
-        modo: modo || 'nback',
+        modo: modo || scoreData.modo || 'nback',
         timestamp: firebase.database.ServerValue.TIMESTAMP
-      }).then(() => console.log("¡Datos migrados con éxito a Firebase!"))
-        .catch(err => console.error("Error al enviar a Firebase:", err));
+      }).then(() => {
+        console.log("¡Datos enviados con éxito a la base de datos!");
+      }).catch((error) => {
+        console.error("Error al escribir en Firebase:", error);
+      });
     } else {
-      console.error("Firebase no está definido en el entorno global.");
+      console.error("Librería Firebase no cargada en index.html");
     }
   } catch (e) {
     console.error("Excepción en la función enviarResultadosAFirebase:", e);
