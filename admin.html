@@ -792,8 +792,8 @@
       console.log("Conectando al nodo de partidas de nback-6b98c...");
       try {
         if (window.firebase) {
-          // IMPORTANTE: Pasamos la URL explícita como parámetro en la llamada para evitar que use la vieja de kortex-innovacion
-          db = firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com");
+          // Usamos la sintaxis correcta para la versión Compat tomando la URL de firebaseConfig
+          db = firebase.database();
           
           db.ref('partidas').on('value', (snapshot) => {
             try {
@@ -1032,7 +1032,7 @@
       closeModal('modal-confirm-2');
       try {
         if (window.firebase) {
-          firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com").ref("partidas").remove()
+          firebase.database().ref("partidas").remove()
             .then(() => {
               alert("Simulación reiniciada correctamente. Consola limpia.");
             })

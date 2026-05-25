@@ -30,7 +30,7 @@ function enviarResultadosAFirebase(scoreData, modo) {
         const nameInput = $('player-name') ? $('player-name').value.trim() : '';
         CURRENT_PLAYER_NAME = nameInput || ('Anon_' + Math.floor(100 + Math.random() * 900));
       }
-      firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com").ref('partidas').push({
+      firebase.database().ref('partidas').push({
         nombre: CURRENT_PLAYER_NAME || 'Anon_712',
         adaptabilidad: scoreData.accuracy || 0,
         friccion: scoreData.falsePositives || 0,
