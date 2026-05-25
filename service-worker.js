@@ -3,7 +3,7 @@
    Cache-first strategy for full offline use
 ═══════════════════════════════════════════ */
 
-const CACHE_NAME = 'kortex-v11';
+const CACHE_NAME = 'kortex-v12';
 
 const ASSETS = [
   './',

@@ -1563,417 +1563,322 @@ function drawDualChart(n){
   const step=Math.max(1,Math.ceil(sessions.length/6));
   cx.fillStyle='#56607a'; cx.textAlign='center';
   sessions.forEach((_,i)=>{ if(i%step===0||i===sessions.length-1){ const x=p.l+(sessions.length===1?cW/2:(i/(sessions.length-1))*cW); cx.fillText(i+1,x,H-7); }});
-}
-
-/* ══════════════════════════════════════════
-   11. SETTINGS RENDERER
+}/* ══════════════════════════════════════════
+   12. INTERACTIVE STEP-BY-STEP TUTORIAL
+   Pedagogical walkthrough for N=2
+   Turn 1: Pos 0, sound A (Freeze, Next)
+   Turn 2: Pos 4, sound F (Freeze, Next)
+   Turn 3: Pos 0, sound R (Freeze, force Pos button)
+   Turn 4: Pos 8, sound F (Freeze, force Sound button)
+   Turn 5: Pos 5, sound X (Freeze, Next)
+   Turn 6: Success! (Freeze, Next to start real game)
 ══════════════════════════════════════════ */
-const NOISE_DESCS={silence:'Silencio — para comenzar o días de alta carga cognitiva.',cafe:'Cafetería — aumenta la dificultad de concentración.',meeting:'Reuniones — máxima interferencia, máxima transferencia a la vida real.'};
+let tutStep = 0;
+let tutActive = false;
 
-function renderSettings(){
-  const cfg=CFG.all();
-  $$('#noise-sel .lb').forEach(b=>{ b.classList.toggle('on',b.dataset.noise===cfg.bgNoise); });
-  $$('#lure-sel .lb').forEach(b=>{ b.classList.toggle('on',+b.dataset.lure===cfg.lurePct); });
-  $$('#binaural-sel .lb').forEach(b=>{ b.classList.toggle('on',b.dataset.bin===(cfg.binauralOn?'on':'off')); });
-  $$('#dual-audio-sel .lb').forEach(b=>{ b.classList.toggle('on',b.dataset.daudio===(cfg.dualAudioOn?'on':'off')); });
-  $('noise-note').textContent=NOISE_DESCS[cfg.bgNoise]||'';
-}
-
-/* ══════════════════════════════════════════
-   12. TUTORIAL (3-panel interactive)
-══════════════════════════════════════════ */
-let tutPanel=0, tTOs=[], TG=null;
-
-const tClear=()=>{
-  tTOs.forEach(t=>clearTimeout(t)); tTOs=[];
-  if(TG){ TG.stopped=true; TG=null; }
-  const ov = $('tuto-overlay'); if (ov) ov.remove();
-  const box = $('tuto-assist-box'); if (box) box.remove();
-  const svg = $('tuto-svg'); if (svg) svg.remove();
+function startInteractiveTutorial() {
+  tutStep = 1;
+  tutActive = true;
+  isTutorial = true;
   
-  // Clear styles that were highlighted in tuto
-  const grid = $('tgrid');
-  if (grid) { grid.style.position = ''; grid.style.zIndex = ''; }
-  const cell0 = $('tc0');
-  if (cell0) { cell0.style.position = ''; cell0.style.zIndex = ''; cell0.style.borderColor = ''; cell0.style.boxShadow = ''; cell0.classList.remove('lit-ok'); }
-  
-  // Reset buttons
-  const bp = $('tuto-btn-match-pos'); if (bp) { bp.disabled = true; bp.classList.remove('ready', 'hit', 'miss'); bp.style.position = ''; bp.style.zIndex = ''; }
-  const bs = $('tuto-btn-match-sound'); if (bs) { bs.disabled = true; bs.classList.remove('ready', 'hit', 'miss'); bs.style.position = ''; bs.style.zIndex = ''; }
-  
-  window.removeEventListener('resize', drawTutoArrows);
-  window.removeEventListener('scroll', drawTutoArrows);
-  
-  $('tuto-next').style.visibility = 'visible';
-  $('tuto-prev').style.visibility = 'visible';
-};
-const tLight=(i)=>{ const c=$('tc'+i); if(c) c.classList.add('lit'); };
-const tOff=(i)=>{ const c=$('tc'+i); if(c) c.classList.remove('lit','dim'); };
-const tDim=(i)=>{ const c=$('tc'+i); if(c){ c.classList.remove('lit'); c.classList.add('dim'); } };
-const tOffAll=()=>{ for(let i=0;i<9;i++) tOff(i); };
-
-// Panel 0 animation: looping cell showcase
-function tAnimShowcase(){
-  const seq=[4,0,8,2,6,1,7,3,5];
-  const letters=['B','D','F','H','J','K','L','M','N'];
-  let i=0;
-  const s=()=>{
-    tOffAll(); tLight(seq[i%seq.length]);
-    if(CFG.get('dualAudioOn')) speakLetter(letters[i%letters.length]);
-    i++;
-    tTOs.push(setTimeout(s,1300));
-  };
-  s();
-}
-
-// Panel 1 animation: match demo
-function tAnimMatch(){
-  const seq=[0,4,0,1,6];
-  const letters=['B','D','B','H','H'];
-  const lbls=[
-    'Turno 1: Posición Arriba-Izquierda / Letra B',
-    'Turno 2: Posición Centro / Letra D',
-    'Turno 3: Posición Arriba-Izquierda (igual que T1 ✓) / Letra B (igual que T1 ✓)',
-    'Turno 4: Posición Arriba-Centro / Letra H',
-    'Turno 5: Posición Abajo-Izquierda / Letra H (igual que T3 ✓)'
-  ];
-  const lbl=$('tuto-label'); let i=0;
-  const s=()=>{
-    tOffAll();
-    tLight(seq[i]);
-    if(CFG.get('dualAudioOn')) speakLetter(letters[i]);
-    if(lbl){
-      lbl.textContent=lbls[i];
-      const isMatch = i>=2 && (seq[i]===seq[i-2] || letters[i]===letters[i-2]);
-      lbl.style.color=isMatch?'var(--prime)':'var(--muted)';
-    }
-    tTOs.push(setTimeout(()=>{
-      tOffAll();
-      tTOs.push(setTimeout(()=>{i=(i+1)%seq.length;s();},600));
-    },1400));
-  };
-  s();
-}
-
-// Panel 2: interactive mini-game constants
-const TUTO_LIT=800, TUTO_IV=4000, TUTO_N=2, TUTO_ACTIVE=8;
-
-function drawTutoArrows() {
-  const svg = $('tuto-svg');
-  if (!svg) return;
-  svg.innerHTML = '';
-  
-  const box = $('tuto-assist-box');
-  const cell = $('tc0');
-  const btn = $('tuto-btn-match-pos');
-  
-  if (!box || !cell || !btn) return;
-  
-  const boxRect = box.getBoundingClientRect();
-  const cellRect = cell.getBoundingClientRect();
-  const btnRect = btn.getBoundingClientRect();
-  
-  const cellX = cellRect.left + cellRect.width / 2;
-  const cellY = cellRect.top + cellRect.height / 2;
-  
-  const btnX = btnRect.left + btnRect.width / 2;
-  const btnY = btnRect.top + btnRect.height / 2;
-  
-  const boxTopX = boxRect.left + boxRect.width / 2;
-  const boxTopY = boxRect.top;
-  const boxBotX = boxRect.left + boxRect.width / 2;
-  const boxBotY = boxRect.bottom;
-  
-  svg.innerHTML = `
-    <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--prime)" />
-      </marker>
-    </defs>
-    
-    <path d="M ${boxTopX} ${boxTopY} Q ${(boxTopX + cellX)/2} ${(boxTopY + cellY)/2 - 20} ${cellX} ${cellY}" 
-          fill="none" stroke="var(--prime)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)">
-      <animate attributeName="stroke-dashoffset" values="20;0" dur="1s" repeatCount="indefinite" />
-    </path>
-    
-    <path d="M ${boxBotX} ${boxBotY} Q ${(boxBotX + btnX)/2} ${(boxBotY + btnY)/2 + 20} ${btnX} ${btnY}" 
-          fill="none" stroke="var(--prime)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)">
-      <animate attributeName="stroke-dashoffset" values="20;0" dur="1s" repeatCount="indefinite" />
-    </path>
-  `;
-}
-
-function showHUDOnboardingAssist() {
-  if (!TG || TG.stopped) return;
-  TG.waitingForValidation = true;
-  
-  // 1. Inject overlay
-  const overlay = document.createElement('div');
-  overlay.id = 'tuto-overlay';
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(11, 15, 26, 0.85);
-    z-index: 40;
-    pointer-events: auto;
-  `;
-  document.body.appendChild(overlay);
-  
-  // 2. Inject explanation box
-  const box = document.createElement('div');
-  box.id = 'tuto-assist-box';
-  box.className = 'tuto-assist-box';
-  box.style.cssText = `
-    position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: min(300px, 85vw);
-    background: #0b0f1a;
-    border: 1px solid var(--prime);
-    box-shadow: 0 0 15px rgba(110, 255, 200, 0.4);
-    padding: 16px;
-    border-radius: 8px;
-    z-index: 46;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--text);
-    line-height: 1.6;
-    text-align: center;
-    font-size: 0.88rem;
-  `;
-  box.innerHTML = `
-    <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
-      Guía de Memoria N=2
-    </div>
-    <div style="margin-bottom: 0;">
-      Compara este estímulo con el de hace 2 turnos (Turno 1). Como la <strong>Ubicación</strong> se repite, debes presionar el botón correspondiente abajo para anotar un punto.
-    </div>
-  `;
-  document.body.appendChild(box);
-  
-  // 3. Inject SVG overlay
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.id = 'tuto-svg';
-  svg.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 45;
-    pointer-events: none;
-  `;
-  document.body.appendChild(svg);
-  
-  // 4. Elevate grid, target cell and match buttons
-  const grid = $('tgrid');
-  if (grid) {
-    grid.style.position = 'relative';
-    grid.style.zIndex = '45';
-  }
-  const cell0 = $('tc0');
-  if (cell0) {
-    cell0.style.position = 'relative';
-    cell0.style.zIndex = '45';
-    cell0.style.borderColor = 'var(--prime)';
-    cell0.style.boxShadow = '0 0 12px var(--prime)';
-  }
-  
-  const bp = $('tuto-btn-match-pos');
+  // Reset buttons status
+  const bp = $('t-btn-pos');
+  const bs = $('t-btn-sound');
   if (bp) {
+    bp.classList.remove('blink-highlight', 'hit', 'miss', 'ready');
     bp.disabled = false;
-    bp.style.position = 'relative';
-    bp.style.zIndex = '45';
-    bp.classList.add('ready');
   }
-  
-  const bs = $('tuto-btn-match-sound');
   if (bs) {
+    bs.classList.remove('blink-highlight', 'hit', 'miss', 'ready');
     bs.disabled = false;
-    bs.style.position = 'relative';
-    bs.style.zIndex = '45';
-    bs.classList.add('ready');
   }
   
-  // Draw arrows initially
-  drawTutoArrows();
-  
-  // Recalculate on resize/scroll
-  window.addEventListener('resize', drawTutoArrows);
-  window.addEventListener('scroll', drawTutoArrows);
-  
-  // 5. Define validation logic
-  TG.validateFn = (channel) => {
-    if (channel === 'vis') {
-      // SUCCESS!
-      window.removeEventListener('resize', drawTutoArrows);
-      window.removeEventListener('scroll', drawTutoArrows);
-      
-      Snd.hit();
-      
-      if (cell0) {
-        cell0.classList.add('lit-ok');
-        setTimeout(() => cell0.classList.remove('lit-ok'), 600);
-      }
-      if (bp) {
-        bp.classList.remove('ready');
-        bp.classList.add('hit');
-      }
-      
-      // Clean up helper visuals
-      tClear();
-      
-      // Show done state
-      endTutoGame();
-    } else {
-      // WRONG!
-      Snd.falseAlarm();
-      if (bs) {
-        bs.classList.add('miss');
-        setTimeout(() => bs.classList.remove('miss'), 600);
-      }
-      $('tuto-feedback').style.color = 'var(--warn)';
-      $('tuto-feedback').textContent = 'Esa no coincide. Recuerda que la letra actual ("F") es diferente a la de hace 2 turnos ("B"). Presiona UBICACIÓN.';
+  const nextBtn = $('t-btn-next');
+  if (nextBtn) nextBtn.style.display = 'none';
+
+  runTutorialStep(1);
+}
+
+function tResetGrid() {
+  for (let i = 0; i < 9; i++) {
+    const c = $('tc-' + i);
+    if (c) {
+      c.classList.remove('lit', 'dim', 'lit-ok');
+      c.style.borderColor = '';
+      c.style.boxShadow = '';
     }
-  };
-}
-
-function startTutoGame() {
-  tClear();
-  const seqVis = [0, 4, 0];
-  const seqAud = ['B', 'D', 'F'];
-  TG = {
-    n: 2,
-    seqVis,
-    seqAud,
-    turn: 0,
-    total: 3,
-    stopped: false,
-    waitingForValidation: false,
-    t1: 0, t2: 0, t3: 0,
-    validateFn: null
-  };
-  
-  const tutoMatchBtn = $('tuto-match-btn');
-  if (tutoMatchBtn) tutoMatchBtn.style.display = 'none';
-  const tutoDualBtns = $('tuto-dual-btns');
-  if (tutoDualBtns) tutoDualBtns.style.display = 'flex';
-  
-  $('tuto-match-area').style.display = 'block';
-  $('tuto-done').style.display = 'none';
-  $('tuto-feedback').textContent = '';
-  $('tuto-feedback').style.color = 'var(--muted)';
-  
-  // Hide navigation arrows to force sequential tutorial
-  $('tuto-next').style.visibility = 'hidden';
-  $('tuto-prev').style.visibility = 'hidden';
-  
-  setTimeout(runTutoTurn, 600);
-}
-
-function runTutoTurn() {
-  if (!TG || TG.stopped) return;
-  const { n, seqVis, seqAud, turn, total } = TG;
-  const cell = seqVis[turn];
-  const letter = seqAud[turn];
-  
-  TG.waitingForValidation = false;
-  $('tuto-feedback').textContent = '';
-  
-  let hint = '';
-  if (turn === 0) {
-    hint = `Turno 1 de 3: Observa la posición y escucha el sonido.`;
-  } else if (turn === 1) {
-    hint = `Turno 2 de 3: Recuerda la secuencia. Cada elemento avanza un paso.`;
-  } else {
-    hint = `Turno 3 de 3: ¡Espera! Analicemos este turno.`;
   }
+}
+
+function tLightCell(idx) {
+  tResetGrid();
+  const c = $('tc-' + idx);
+  if (c) c.classList.add('lit');
+}
+
+function runTutorialStep(step) {
+  tutStep = step;
+  tResetGrid();
   
-  $('tuto-content').innerHTML = `
-    <div style="background:rgba(110,255,200,.07);border:1px solid rgba(110,255,200,.2);border-radius:var(--r);padding:10px 14px;font-size:.84rem;color:var(--text);line-height:1.55;margin-bottom:14px;min-height:54px">
-      ${hint}
-    </div>
-  `;
+  const disp = $('t-letter-display');
+  if (disp) disp.textContent = '';
   
-  tOffAll();
-  tLight(cell);
+  const bp = $('t-btn-pos');
+  const bs = $('t-btn-sound');
+  const nextBtn = $('t-btn-next');
   
-  speakLetter(letter);
-  Snd.cell();
+  if (bp) bp.classList.remove('blink-highlight', 'hit', 'miss', 'ready');
+  if (bs) bs.classList.remove('blink-highlight', 'hit', 'miss', 'ready');
+  if (nextBtn) nextBtn.style.display = 'none';
   
-  if (turn < 2) {
-    TG.t1 = setTimeout(() => tOff(cell), TUTO_LIT);
-    TG.t2 = setTimeout(() => {
-      if (!TG || TG.stopped) return;
-      TG.turn++;
-      runTutoTurn();
-    }, 2800);
-  } else {
+  if (step === 1) {
+    tLightCell(0);
+    if (disp) disp.textContent = 'A';
+    speakLetter('A');
+    Snd.cell();
+    
+    $('t-instruction-card').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        Turno 1 / 5: Estímulo Inicial
+      </div>
+      <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
+        Aparece un cuadrado <strong>arriba a la izquierda</strong> y suena la letra <strong>"A"</strong>.
+      </div>
+      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0;">
+        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.15); font-weight:600; font-size:0.8rem;">T1: ↖ (A)</div>
+      </div>
+      <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
+        Aquí <strong>NO debes presionar nada</strong>. Es el primer paso del juego. Memoriza la posición y la letra, luego presiona [Siguiente].
+      </div>
+    `;
+    if (nextBtn) {
+      nextBtn.textContent = 'SIGUIENTE';
+      nextBtn.style.display = 'block';
+    }
+    
+  } else if (step === 2) {
+    tLightCell(4);
+    if (disp) disp.textContent = 'F';
+    speakLetter('F');
+    Snd.cell();
+    
+    $('t-instruction-card').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        Turno 2 / 5: Memorización
+      </div>
+      <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
+        El cuadrado se mueve al <strong>centro</strong> y suena la letra <strong>"F"</strong>.
+      </div>
+      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
+        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T1: ↖ (A)</div>
+        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.15); font-weight:600;">T2: ◼ (F)</div>
+      </div>
+      <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
+        Tampoco debes presionar nada. Llevamos 2 turnos. Para comparar con "hace 2 turnos" (N=2), necesitamos esperar al Turno 3. Presiona [Siguiente].
+      </div>
+    `;
+    if (nextBtn) {
+      nextBtn.textContent = 'SIGUIENTE';
+      nextBtn.style.display = 'block';
+    }
+    
+  } else if (step === 3) {
+    tLightCell(0);
+    if (disp) disp.textContent = 'R';
+    speakLetter('R');
+    Snd.cell();
+    
+    // Highlight Turn 1 cell (which was also 0) after a short delay
     setTimeout(() => {
-      if (!TG || TG.stopped) return;
-      showHUDOnboardingAssist();
+      if (tutStep === 3 && tutActive) {
+        const c = $('tc-0');
+        if (c) {
+          c.style.borderColor = 'var(--prime)';
+          c.style.boxShadow = '0 0 12px var(--prime)';
+        }
+      }
     }, 400);
+
+    $('t-instruction-card').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        Turno 3 / 5: Coincidencia de Posición
+      </div>
+      <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
+        ¡Atención! Compara la posición actual con la del <strong>Turno 1</strong> (hace 2 pasos).<br>
+        Ambos están <strong>arriba a la izquierda</strong>. ¡Coinciden!<br>
+        (La letra "R" no coincide con "A", ignora el sonido).
+      </div>
+      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
+        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.06); text-decoration: underline;">T1: ↖ (A)</div>
+        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T2: ◼ (F)</div>
+        <div style="border: 2px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.15); font-weight:600; animation: pulseGlow 1.2s infinite;">T3: ↖ (R)</div>
+      </div>
+      <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
+        El juego está congelado. Presiona el botón <strong style="color:var(--prime)">UBICACIÓN</strong> ahora para marcar tu acierto y avanzar.
+      </div>
+    `;
+    if (bp) bp.classList.add('blink-highlight');
+    
+  } else if (step === 4) {
+    tLightCell(8);
+    if (disp) disp.textContent = 'F';
+    speakLetter('F');
+    Snd.cell();
+    
+    $('t-instruction-card').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        Turno 4 / 5: Coincidencia de Sonido
+      </div>
+      <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
+        Compara la letra actual con la del <strong>Turno 2</strong> (hace 2 pasos).<br>
+        En el Turno 2 escuchaste <strong>"F"</strong> y ahora también. ¡Coinciden!<br>
+        (La posición cambió del centro a abajo-derecha, ignora la vista).
+      </div>
+      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
+        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T2: (F)</div>
+        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T3: ↖ (R)</div>
+        <div style="border: 2px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.15); font-weight:600; animation: pulseGlow 1.2s infinite;">T4: ↘ (F)</div>
+      </div>
+      <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
+        La pantalla está congelada. Presiona el botón <strong style="color:var(--prime)">SONIDO</strong> ahora para avanzar.
+      </div>
+    `;
+    if (bs) bs.classList.add('blink-highlight');
+    
+  } else if (step === 5) {
+    tLightCell(5);
+    if (disp) disp.textContent = 'X';
+    speakLetter('X');
+    Snd.cell();
+    
+    $('t-instruction-card').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        Turno 5 / 5: Sin Coincidencias
+      </div>
+      <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
+        Compara con el <strong>Turno 3</strong> (hace 2 pasos).<br>
+        Posición previa: arriba-izquierda (ahora: derecha). Letra previa: "R" (ahora: "X"). No hay coincidencias.
+      </div>
+      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
+        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T3: ↖ (R)</div>
+        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T4: ↘ (F)</div>
+        <div style="border: 1px solid var(--warn); padding: 4px 8px; border-radius: 6px; background: rgba(212,122,122,0.1); font-weight:600;">T5: ➔ (X)</div>
+      </div>
+      <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
+        En este caso <strong>NO debes tocar ningún botón</strong>. En el juego real, simplemente dejas pasar el turno sin oprimir nada. Presiona [Siguiente].
+      </div>
+    `;
+    if (nextBtn) {
+      nextBtn.textContent = 'SIGUIENTE';
+      nextBtn.style.display = 'block';
+    }
+    
+  } else if (step === 6) {
+    tResetGrid();
+    if (disp) disp.textContent = '🏁';
+    
+    $('t-instruction-card').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        ¡Tutorial Completado!
+      </div>
+      <div style="font-size: 0.88rem; color: var(--text); line-height: 1.65; margin-bottom: 12px;">
+        ¡Has aprendido a jugar Dual N-Back!<br><br>
+        En la partida real, los estímulos cambian de forma fluida y continua cada 4.5 segundos sin detenerse. Mantén tu concentración y responde rápido.
+      </div>
+    `;
+    if (nextBtn) {
+      nextBtn.textContent = 'IR AL MENÚ PRINCIPAL';
+      nextBtn.style.display = 'block';
+    }
   }
 }
 
-function tutoRespond() {
-  // Deprecated for new interactive flow, but left as no-op to prevent exceptions
-}
-
-function endTutoGame() {
-  TG = null; tOffAll();
-  const bp = $('tuto-btn-match-pos'); if (bp) { bp.disabled = true; bp.classList.remove('ready', 'hit', 'miss'); }
-  const bs = $('tuto-btn-match-sound'); if (bs) { bs.disabled = true; bs.classList.remove('ready', 'hit', 'miss'); }
-  const btn = $('tuto-match-btn'); if (btn) { btn.disabled = true; btn.classList.remove('ready', 'hit', 'miss'); }
+function handleTutorialInteraction(type) {
+  if (!tutActive) return;
   
-  $('tuto-content').innerHTML = `<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:10px;color:var(--text)">¡Excelente aprendizaje!</h3>`;
-  $('tuto-match-area').style.display = 'none';
-  $('tuto-done').style.display = 'block';
-  
-  // Show navigation arrows again
-  $('tuto-next').style.visibility = 'visible';
-  $('tuto-prev').style.visibility = 'visible';
-}
-
-function renderTutoPanel(idx){
-  tClear(); tOffAll();
-  tutPanel=idx;
-  $$('#tuto-dots .tuto-dot').forEach((d,i)=>d.classList.toggle('on',i===idx));
-  // Reset shared areas
-  const matchArea=$('tuto-match-area'), doneArea=$('tuto-done');
-  if(matchArea) matchArea.style.display='none';
-  if(doneArea) doneArea.style.display='none';
-  $('tgrid').style.display='none';
-  $('tuto-label').style.display='none'; $('tuto-label').textContent='';
-  $('tuto-prev').style.visibility=idx>0?'visible':'hidden';
-  $('tuto-next').style.visibility=idx<2?'visible':'hidden';
-  $('tuto-next').textContent='Siguiente →';
-  const scrEl=$('s-tuto'); if(scrEl) scrEl.scrollTop=0;
-
-  if(idx===0){
-    $('tuto-content').innerHTML='<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:14px;color:var(--text)">¿Qué es Dual N-Back?</h3><p style="color:var(--muted);font-size:.88rem;line-height:1.78">Es el modo principal. Rastrearás dos estímulos al mismo tiempo: una **posición visual** en la grilla y una **letra hablada** por audio.</p>';
-    $('tgrid').style.display='grid';
-    tTOs.push(setTimeout(tAnimShowcase,420));
-  } else if(idx===1){
-    $('tuto-content').innerHTML='<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:10px;color:var(--text)">La regla clásica N=2</h3><p style="font-size:.88rem;color:var(--text);line-height:1.7;margin-bottom:8px">Compara el turno actual con el de hace <strong>2 turnos atrás</strong>:<br>- Presiona <span style="color:var(--prime);font-weight:bold;">UBICACIÓN (A)</span> si la posición coincide.<br>- Presiona <span style="color:#7eb8e8;font-weight:bold;">SONIDO (L)</span> si el sonido coincide.</p>';
-    $('tgrid').style.display='grid';
-    $('tuto-label').style.display='block';
-    tTOs.push(setTimeout(tAnimMatch,420));
-  } else if(idx===2){
-    $('tuto-content').innerHTML='<h3 style="font-size:1.1rem;font-weight:600;margin-bottom:10px;color:var(--text)">Practiquemos (N=2)</h3>';
-    $('tgrid').style.display='grid';
-    $('tuto-prev').style.visibility='hidden';
-    $('tuto-next').style.visibility='hidden';
-    startTutoGame();
+  if (tutStep === 3 && type === 'pos') {
+    Snd.hit();
+    $('t-btn-pos').classList.remove('blink-highlight');
+    $('t-btn-pos').classList.add('hit');
+    
+    const c = $('tc-0');
+    if (c) {
+      c.classList.add('lit-ok');
+    }
+    
+    $('t-instruction-card').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        ¡Excelente!
+      </div>
+      <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
+        Marcaste correctamente la coincidencia de posición (arriba a la izquierda).
+      </div>
+      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
+        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.1); color: var(--prime);">T1: ↖ (A)</div>
+        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T2: ◼ (F)</div>
+        <div style="border: 2px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.2); font-weight:600; color: var(--prime);">T3: ↖ (R)</div>
+      </div>
+      <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
+        El estímulo visual de hace 2 turnos coincidió con el actual. Presiona [Siguiente] para continuar.
+      </div>
+    `;
+    
+    const nextBtn = $('t-btn-next');
+    if (nextBtn) {
+      nextBtn.textContent = 'SIGUIENTE';
+      nextBtn.style.display = 'block';
+    }
+    
+  } else if (tutStep === 3 && type === 'sound') {
+    Snd.falseAlarm();
+    $('t-btn-sound').classList.add('miss');
+    setTimeout(() => $('t-btn-sound').classList.remove('miss'), 500);
+    
+  } else if (tutStep === 4 && type === 'sound') {
+    Snd.hit();
+    $('t-btn-sound').classList.remove('blink-highlight');
+    $('t-btn-sound').classList.add('hit');
+    
+    $('t-instruction-card').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        ¡Excelente!
+      </div>
+      <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
+        Marcaste correctamente la coincidencia de sonido (la letra "F").
+      </div>
+      <div style="display:flex; justify-content:center; gap:8px; margin: 12px 0; font-size:0.8rem;">
+        <div style="border: 1px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.1); color: var(--prime);">T2: (F)</div>
+        <div style="border: 1px solid var(--bdr); padding: 4px 8px; border-radius: 6px; opacity: 0.5;">T3: ↖ (R)</div>
+        <div style="border: 2px solid var(--prime); padding: 4px 8px; border-radius: 6px; background: rgba(110,255,200,0.2); font-weight:600; color: var(--prime);">T4: ↘ (F)</div>
+      </div>
+      <div style="font-size: 0.86rem; color: var(--muted); line-height: 1.6;">
+        El estímulo auditivo de hace 2 turnos coincidió con el actual. Presiona [Siguiente] para continuar.
+      </div>
+    `;
+    
+    const nextBtn = $('t-btn-next');
+    if (nextBtn) {
+      nextBtn.textContent = 'SIGUIENTE';
+      nextBtn.style.display = 'block';
+    }
+    
+  } else if (tutStep === 4 && type === 'pos') {
+    Snd.falseAlarm();
+    $('t-btn-pos').classList.add('miss');
+    setTimeout(() => $('t-btn-pos').classList.remove('miss'), 500);
   }
 }
 
-function initTuto(){
-  $('tuto-dots').innerHTML='<div class="tuto-dot"></div><div class="tuto-dot"></div><div class="tuto-dot"></div>';
-  renderTutoPanel(0);
+function closeTutorialAndStart() {
+  tutActive = false;
+  isTutorial = false;
+  
+  // Set to Dual N-Back level 2 (principiante)
+  selMode = 'dual';
+  selN = 2;
+  
+  // Show configuration screen
+  showModeConfig('dual');
 }
 
 /* ══════════════════════════════════════════
@@ -2160,48 +2065,39 @@ function openTutorial(){
   isTutorial = true;
   DB.markTutorSeen();
   $('hint-banner').style.display='none';
-  initTuto();
-  show('s-tuto');
+  show('s-tutorial');
+  startInteractiveTutorial();
 }
 $('btn-tuto').addEventListener('click',openTutorial);
 $('hint-banner').addEventListener('click',openTutorial);
-$('tuto-back').addEventListener('click',()=>{
+
+$('t-back-btn').addEventListener('click',()=>{
+  tutActive = false;
   isTutorial = false;
-  tClear();
-  tOffAll();
+  tResetGrid();
   show('s-menu');
 });
-$('tuto-prev').addEventListener('click',()=>{ if(tutPanel>0) renderTutoPanel(tutPanel-1); });
-$('tuto-next').addEventListener('click',()=>{ if(tutPanel<2) renderTutoPanel(tutPanel+1); else{ tClear(); tOffAll(); show('s-menu'); } });
-$('tuto-match-btn').addEventListener('click',()=>tutoRespond());
-$('tuto-match-btn').addEventListener('touchstart',e=>{ e.preventDefault(); tutoRespond(); },{passive:false});
 
-// Tutorial buttons
-const tbp = $('tuto-btn-match-pos');
-if (tbp) {
-  tbp.addEventListener('click', () => { if(TG && TG.waitingForValidation) TG.validateFn('vis'); });
-  tbp.addEventListener('touchstart', e => { e.preventDefault(); if(TG && TG.waitingForValidation) TG.validateFn('vis'); }, {passive:false});
-}
-const tbs = $('tuto-btn-match-sound');
-if (tbs) {
-  tbs.addEventListener('click', () => { if(TG && TG.waitingForValidation) TG.validateFn('aud'); });
-  tbs.addEventListener('touchstart', e => { e.preventDefault(); if(TG && TG.waitingForValidation) TG.validateFn('aud'); }, {passive:false});
-}
-$('tuto-start-btn').addEventListener('click',()=>{
-  tClear(); tOffAll();
-  selMode='nback'; selN=2; selDur=8;
-  Snd.init();
-  maybeModeOverlay('nback',()=>{
-    Snd.setBg(CFG.get('bgNoise'));
-    $('g-lvl').textContent='2-Back';
-    $('g-time').textContent=fmtTime(8*60000);
-    $('g-warm').style.display='none';
-    $('g-pace').textContent=(INIT_IV/1000).toFixed(1);
-    $('g-score').style.display='none';
-    uiProg(0); uiStat('',null);
-    show('s-game'); startGame('nback',2,8);
-  });
+$('t-btn-next').addEventListener('click',()=>{
+  if (tutStep === 1) runTutorialStep(2);
+  else if (tutStep === 2) runTutorialStep(3);
+  else if (tutStep === 3) runTutorialStep(4);
+  else if (tutStep === 4) runTutorialStep(5);
+  else if (tutStep === 5) runTutorialStep(6);
+  else if (tutStep === 6) closeTutorialAndStart();
 });
+
+const tp = $('t-btn-pos');
+if (tp) {
+  tp.addEventListener('click', () => handleTutorialInteraction('pos'));
+  tp.addEventListener('touchstart', e => { e.preventDefault(); handleTutorialInteraction('pos'); }, {passive:false});
+}
+
+const ts = $('t-btn-sound');
+if (ts) {
+  ts.addEventListener('click', () => handleTutorialInteraction('sound'));
+  ts.addEventListener('touchstart', e => { e.preventDefault(); handleTutorialInteraction('sound'); }, {passive:false});
+}
 
 // Export / Import data
 $('btn-export-data').addEventListener('click',()=>{
@@ -2270,9 +2166,9 @@ document.addEventListener('keydown',e=>{
     if(e.code==='ArrowRight'||e.code==='KeyL'){ e.preventDefault(); respondDual('aud'); }
   }
   // Keyboard validation for tutorial
-  if($('s-tuto').classList.contains('on') && TG && TG.waitingForValidation){
-    if(e.code==='ArrowLeft'||e.code==='KeyA'){ e.preventDefault(); TG.validateFn('vis'); }
-    if(e.code==='ArrowRight'||e.code==='KeyL'){ e.preventDefault(); TG.validateFn('aud'); }
+  if($('s-tutorial').classList.contains('on') && tutActive){
+    if(e.code==='ArrowLeft'||e.code==='KeyA'){ e.preventDefault(); handleTutorialInteraction('pos'); }
+    if(e.code==='ArrowRight'||e.code==='KeyL'){ e.preventDefault(); handleTutorialInteraction('sound'); }
   }
 });
 

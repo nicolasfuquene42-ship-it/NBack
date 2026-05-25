@@ -527,47 +527,50 @@
   <div style="height:44px"></div>
 </div>
 
-<!-- ━━━━━━ TUTORIAL ━━━━━━ -->
-<div id="s-tuto" class="scr" style="justify-content:flex-start;padding-top:0">
+<!-- ━━━━━━ NEW INTERACTIVE TUTORIAL ━━━━━━ -->
+<div id="s-tutorial" class="scr" style="justify-content:flex-start;padding-top:0">
   <div class="sticky-hdr">
-    <button class="btn-ic" id="tuto-back">←</button>
-    <span style="font-size:1.05rem;font-weight:600;margin-left:8px">Cómo jugar</span>
+    <button class="btn-ic" id="t-back-btn">←</button>
+    <span style="font-size:1.05rem;font-weight:600;margin-left:8px;font-family:'Rajdhani',sans-serif;letter-spacing:.04em">Tutorial Interactivo</span>
   </div>
-  <div style="width:100%;max-width:340px;margin-top:20px">
-    <!-- Title + text (changes per panel) -->
-    <div id="tuto-content"></div>
-    <!-- Shared 3×3 grid -->
-    <div class="tgrid" id="tgrid" style="display:none"></div>
-    <!-- Match label (panels 0–1) -->
-    <div id="tuto-label" style="display:none;text-align:center;font-size:.76rem;min-height:20px;margin-top:4px;transition:color .15s"></div>
-    <!-- Panel 2: interactive mini-game controls -->
-    <div id="tuto-match-area" style="display:none">
-      <div style="height:20px"></div>
-      <div class="dual-btns" id="tuto-dual-btns" style="justify-content:center;margin:0 auto;display:none;width:min(280px,calc(100vw - 44px))">
-        <button class="dbtn" id="tuto-btn-match-pos" disabled>
-          <span class="dbtn-sub">Posición (A)</span>
-          Ubicación
-        </button>
-        <button class="dbtn" id="tuto-btn-match-sound" disabled>
-          <span class="dbtn-sub">Sonido (L)</span>
-          Sonido
-        </button>
-      </div>
-      <button class="mbtn" id="tuto-match-btn" disabled style="width:min(260px,calc(100vw - 72px))">COINCIDE</button>
-      <div id="tuto-feedback" style="font-size:.78rem;text-align:center;min-height:20px;margin-top:8px;color:var(--muted)"></div>
+  
+  <div style="width:100%;max-width:340px;margin-top:20px;display:flex;flex-direction:column;align-items:center;">
+    <!-- Large prominent subtitle/instruction card -->
+    <div id="t-instruction-card" style="width:100%;background:rgba(26,34,53,0.8);border:1px solid var(--prime);box-shadow:0 0 15px rgba(110,255,200,0.25);border-radius:12px;padding:16px;margin-bottom:20px;font-family:'DM Sans',sans-serif;color:var(--text);line-height:1.6;font-size:0.9rem;text-align:center;min-height:110px;display:flex;flex-direction:column;justify-content:center;">
+      Cargando tutorial...
     </div>
-    <!-- Panel 2: end state -->
-    <div id="tuto-done" style="display:none;margin-top:22px;text-align:center">
-      <p style="font-size:.9rem;color:var(--text);margin-bottom:18px;line-height:1.6">Listo. Ya sabes jugar. ¿Empezamos de verdad?</p>
-      <button class="btn-primary-full" id="tuto-start-btn" style="max-width:240px;margin:0 auto;height:52px">Empezar sesión real →</button>
+
+    <!-- 3x3 Grid for visual stimulus -->
+    <div class="tgrid" id="t-grid" style="margin-bottom:16px;">
+      <div class="tcell" id="tc-0"></div>
+      <div class="tcell" id="tc-1"></div>
+      <div class="tcell" id="tc-2"></div>
+      <div class="tcell" id="tc-3"></div>
+      <div class="tcell" id="tc-4"></div>
+      <div class="tcell" id="tc-5"></div>
+      <div class="tcell" id="tc-6"></div>
+      <div class="tcell" id="tc-7"></div>
+      <div class="tcell" id="tc-8"></div>
     </div>
+
+    <!-- Audio indicator / Letter display -->
+    <div id="t-letter-display" style="font-family:'Rajdhani',sans-serif;font-size:2.8rem;font-weight:700;color:var(--prime);margin-bottom:20px;height:60px;display:flex;align-items:center;justify-content:center;text-shadow:0 0 10px rgba(110,255,200,0.5)"></div>
+
+    <!-- Interactive Buttons -->
+    <div class="dual-btns" style="justify-content:center;margin-bottom:20px;width:100%">
+      <button class="dbtn" id="t-btn-pos" style="flex:1;height:54px;">
+        <span class="dbtn-sub">Posición (A)</span>
+        Ubicación
+      </button>
+      <button class="dbtn" id="t-btn-sound" style="flex:1;height:54px;">
+        <span class="dbtn-sub">Sonido (L)</span>
+        Sonido
+      </button>
+    </div>
+
+    <!-- Siguiente/Action Button -->
+    <button class="btn-primary-full" id="t-btn-next" style="width:100%;height:52px;display:none;">SIGUIENTE</button>
   </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:340px;margin-top:28px;margin-bottom:8px">
-    <button class="txt-btn" id="tuto-prev" style="visibility:hidden">← Anterior</button>
-    <div class="tuto-dots" id="tuto-dots"></div>
-    <button class="txt-btn" id="tuto-next">Siguiente →</button>
-  </div>
-  <div style="height:44px"></div>
 </div>
 
 

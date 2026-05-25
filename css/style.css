@@ -133,8 +133,19 @@ h1,h2,h3,.heading-font { font-family:'Rajdhani',sans-serif; }
 /* ── welcome screen ── */
 @keyframes welFade { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
 .wel-item { opacity:0; animation:welFade .55s ease forwards; }
-.w1{animation-delay:.3s} .w2{animation-delay:1.1s} .w3{animation-delay:2.2s}
-.w4{animation-delay:3.0s} .w5{animation-delay:3.8s} .w6{animation-delay:4.6s}
+
+/* ── blink highlight for tutorial ── */
+@keyframes pulseGlow {
+  0% { border-color: var(--prime); box-shadow: 0 0 5px rgba(110, 255, 200, 0.4); }
+  50% { border-color: var(--prime); box-shadow: 0 0 20px rgba(110, 255, 200, 0.8); }
+  100% { border-color: var(--prime); box-shadow: 0 0 5px rgba(110, 255, 200, 0.4); }
+}
+.blink-highlight {
+  animation: pulseGlow 1.2s infinite !important;
+  border-width: 2px !important;
+  color: var(--prime) !important;
+  background: rgba(110, 255, 200, 0.08) !important;
+}
 
 /* ── mode cards ── */
 .mode-card { background:linear-gradient(145deg,var(--card) 0%,rgba(255,255,255,.012) 100%); border:1.5px solid var(--bdr); border-radius:12px; padding:14px 12px; cursor:pointer; transition:border-color .12s,transform .12s; user-select:none; min-height:110px; display:flex; flex-direction:column; }
