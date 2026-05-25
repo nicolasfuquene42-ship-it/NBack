@@ -6,17 +6,21 @@ const $$ = sel => document.querySelectorAll(sel);
 let CURRENT_PLAYER_NAME = '';
 
 const firebaseConfig = {
-  apiKey: null,
-  authDomain: "nback-e3db7.firebaseapp.com",
-  databaseURL: "https://nback-e3db7-default-rtdb.firebaseio.com",
-  projectId: "nback-e3db7",
-  storageBucket: "nback-e3db7.appspot.com",
-  messagingSenderId: null,
-  appId: null
+  apiKey: "AIzaSyCNXJXQxYjZIXSNkjIlwfy-LHVGCnbEIgg",
+  authDomain: "nback-6b98c.firebaseapp.com",
+  databaseURL: "https://nback-6b98c-default-rtdb.firebaseio.com",
+  projectId: "nback-6b98c",
+  storageBucket: "nback-6b98c.firebasestorage.app",
+  messagingSenderId: "192232324393",
+  appId: "1:192232324393:web:512e2640aa81ffcde24b38",
+  measurementId: "G-JWHKE4154D"
 };
 
-if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+// Inicialización segura adaptada al formato de scripts CDN globales (Compat) del proyecto
+if (typeof firebase !== 'undefined') {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
 }
 
 function enviarResultadosAFirebase(scoreData, modo) {
