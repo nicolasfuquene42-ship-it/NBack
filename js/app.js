@@ -24,23 +24,26 @@ if (typeof firebase !== 'undefined') {
 }
 
 function enviarResultadosAFirebase(scoreData, modo) {
-  if (typeof firebase !== 'undefined' && firebase.database) {
-    if (!CURRENT_PLAYER_NAME) {
-      const nameInput = $('player-name') ? $('player-name').value.trim() : '';
-      CURRENT_PLAYER_NAME = nameInput || ('Anon_' + Math.floor(100 + Math.random() * 900));
-    }
-    try {
-      firebase.database().ref('partidas/').push({
-        nombre: CURRENT_PLAYER_NAME,
-        adaptabilidad: scoreData.accuracy,
-        resistenciaAlCambio: scoreData.falsePositives,
-        agilidadDecisiones: scoreData.avgResponseTime,
+  try {
+    if (window.firebase) {
+      if (!CURRENT_PLAYER_NAME) {
+        const nameInput = $('player-name') ? $('player-name').value.trim() : '';
+        CURRENT_PLAYER_NAME = nameInput || ('Anon_' + Math.floor(100 + Math.random() * 900));
+      }
+      firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com").ref('partidas').push({
+        nombre: CURRENT_PLAYER_NAME || 'Anon_712',
+        adaptabilidad: scoreData.accuracy || 0,
+        friccion: scoreData.falsePositives || 0,
+        agilidad: scoreData.avgResponseTime || 0,
         modo: modo || 'nback',
         timestamp: firebase.database.ServerValue.TIMESTAMP
-      });
-    } catch (e) {
-      console.error("Error al enviar a Firebase:", e);
+      }).then(() => console.log("¡Datos migrados con éxito a Firebase!"))
+        .catch(err => console.error("Error al enviar a Firebase:", err));
+    } else {
+      console.error("Firebase no está definido en el entorno global.");
     }
+  } catch (e) {
+    console.error("Excepción en la función enviarResultadosAFirebase:", e);
   }
 }
 

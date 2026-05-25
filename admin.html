@@ -761,21 +761,28 @@
     
     function initFirebase() {
       try {
-        if (typeof firebase !== 'undefined') {
+        if (window.firebase) {
           if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
           }
+          db = firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com");
+          
+          // Setup listener with Compat API and proper real-time updates handling
+          firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com").ref("partidas").on("value", (snapshot) => {
+            try {
+              const data = snapshot.val();
+              console.log("Datos recibidos en tiempo real:", data);
+              processGameData(data);
+              flashVisualPanels();
+            } catch (err) {
+              console.error("Error al procesar los datos de Firebase:", err);
+            }
+          }, (error) => {
+            console.error("Error en la escucha de Realtime Database:", error);
+          });
+        } else {
+          console.error("Firebase no está definido en el entorno global.");
         }
-        db = firebase.database();
-        
-        // Setup listener
-        firebase.database().ref("partidas").on("value", (snapshot) => {
-          const data = snapshot.val();
-          processGameData(data);
-          flashVisualPanels();
-        }, (error) => {
-          console.error("Error al escuchar Firebase: ", error);
-        });
       } catch (e) {
         console.error("Fallo al inicializar Firebase: ", e);
       }
@@ -811,22 +818,22 @@
           id: key,
           nombre: entry.nombre || 'Anon',
           adaptabilidad: Number(entry.adaptabilidad || 0),
-          resistenciaAlCambio: Number(entry.resistenciaAlCambio || 0),
-          agilidadDecisiones: Number(entry.agilidadDecisiones || 0),
+          friccion: Number(entry.friccion !== undefined ? entry.friccion : (entry.resistenciaAlCambio || 0)),
+          agilidad: Number(entry.agilidad !== undefined ? entry.agilidad : (entry.agilidadDecisiones || 0)),
           modo: entry.modo || 'nback', // Fallback to nback
           timestamp: entry.timestamp
         });
       });
       
-      // Order ranking by: Adaptabilidad desc, then ResistenciaAlCambio asc, then AgilidadDecisiones asc
+      // Order ranking by: Adaptabilidad desc, then friccion asc, then agilidad asc
       parsedPartidas.sort((a, b) => {
         if (b.adaptabilidad !== a.adaptabilidad) {
           return b.adaptabilidad - a.adaptabilidad;
         }
-        if (a.resistenciaAlCambio !== b.resistenciaAlCambio) {
-          return a.resistenciaAlCambio - b.resistenciaAlCambio;
+        if (a.friccion !== b.friccion) {
+          return a.friccion - b.friccion;
         }
-        return a.agilidadDecisiones - b.agilidadDecisiones;
+        return a.agilidad - b.agilidad;
       });
       
       renderDashboard(parsedPartidas);
@@ -877,18 +884,18 @@
       const avgAcc = Math.round(sumAcc / totalPlayers);
       document.getElementById('stat-avg-acc').textContent = `${avgAcc}%`;
       
-      // Jugador más rápido (excluding span mode where agilidadDecisiones is 0)
-      const speedList = partidas.filter(p => p.agilidadDecisiones > 0);
+      // Jugador más rápido (excluding span mode where agilidad is 0)
+      const speedList = partidas.filter(p => p.agilidad > 0);
       if (speedList.length > 0) {
-        // Find minimum agilidadDecisiones
+        // Find minimum agilidad
         let fastest = speedList[0];
         speedList.forEach(p => {
-          if (p.agilidadDecisiones < fastest.agilidadDecisiones) {
+          if (p.agilidad < fastest.agilidad) {
             fastest = p;
           }
         });
         document.getElementById('stat-fastest-player').textContent = fastest.nombre;
-        document.getElementById('stat-fastest-speed').textContent = `Agilidad: ${fastest.agilidadDecisiones} segundos (${translateMode(fastest.modo)})`;
+        document.getElementById('stat-fastest-speed').textContent = `Agilidad: ${fastest.agilidad} segundos (${translateMode(fastest.modo)})`;
       } else {
         document.getElementById('stat-fastest-player').textContent = '—';
         document.getElementById('stat-fastest-speed').textContent = 'Tiempo de respuesta promedio';
@@ -909,8 +916,8 @@
           <td>${p.nombre}</td>
           <td><span class="badge-mode ${p.modo}">${translateMode(p.modo)}</span></td>
           <td><span class="badge-accuracy">${p.adaptabilidad}%</span></td>
-          <td class="badge-friction">${p.resistenciaAlCambio}</td>
-          <td>${p.agilidadDecisiones > 0 ? p.agilidadDecisiones + ' s' : '—'}</td>
+          <td class="badge-friction">${p.friccion}</td>
+          <td>${p.agilidad > 0 ? p.agilidad + ' s' : '—'}</td>
           <td style="color:var(--muted); font-size:0.8rem">${formatTime(p.timestamp)}</td>
         `;
         rankingBody.appendChild(tr);
@@ -932,9 +939,9 @@
         const m = modeStats[p.modo];
         m.count++;
         m.sumAcc += p.adaptabilidad;
-        m.sumFriction += p.resistenciaAlCambio;
-        if (p.agilidadDecisiones > 0) {
-          m.sumSpeed += p.agilidadDecisiones;
+        m.sumFriction += p.friccion;
+        if (p.agilidad > 0) {
+          m.sumSpeed += p.agilidad;
           m.speedCount++;
         }
       });
@@ -994,14 +1001,19 @@
     function executeDeleteDatabase() {
       closeModal('modal-confirm-2');
       try {
-        firebase.database().ref("partidas").remove()
-          .then(() => {
-            alert("Simulación reiniciada correctamente. Consola limpia.");
-          })
-          .catch((error) => {
-            console.error("Error al limpiar Firebase: ", error);
-            alert("Error al intentar limpiar la base de datos.");
-          });
+        if (window.firebase) {
+          firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com").ref("partidas").remove()
+            .then(() => {
+              alert("Simulación reiniciada correctamente. Consola limpia.");
+            })
+            .catch((error) => {
+              console.error("Error al limpiar Firebase: ", error);
+              alert("Error al intentar limpiar la base de datos.");
+            });
+        } else {
+          console.error("Firebase no está definido en el entorno global.");
+          alert("Error: Firebase no está disponible.");
+        }
       } catch (error) {
         console.error("Error al limpiar Firebase: ", error);
         alert("Error: No hay conexión activa a la base de datos.");
