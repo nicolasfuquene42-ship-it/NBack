@@ -355,7 +355,7 @@ function speakLetter(letter) {
 /* ══════════════════════════════════════════
    6. NBACK / EMOTION / RESILIENCE ENGINE
 ══════════════════════════════════════════ */
-const LIT=500, LIT_EMOTION=1100, INIT_IV=2500, MIN_IV=1500, MIN_IV_EMOTION=2500, MAX_IV=3500, ROLL=10, ADAPT_EVERY=10;
+const LIT=1500, LIT_EMOTION=1100, INIT_IV=4500, MIN_IV=3000, MIN_IV_EMOTION=2500, MAX_IV=6000, ROLL=10, ADAPT_EVERY=10;
 
 const EXPR_NAMES=['Neutro','Alegre','Tenso','Sorprendido'];
 
@@ -934,8 +934,8 @@ const NEWCOMER_CAP = 3;
 function getSessionParams(mode) {
   const c = DB.sessionCount(mode);
   const isEmotion = mode === 'emotion';
-  if(c === 0) return { initIv:isEmotion?4000:3500, matchPct:40, roll:15, adaptEvery:15, lurePct:0 };
-  if(c < NEWCOMER_CAP) return { initIv:isEmotion?3500:3000, matchPct:35, roll:12, adaptEvery:12, lurePct:Math.min(10,CFG.get('lurePct')) };
+  if(c === 0) return { initIv:isEmotion?4500:4500, matchPct:40, roll:15, adaptEvery:15, lurePct:0 };
+  if(c < NEWCOMER_CAP) return { initIv:isEmotion?4500:4500, matchPct:35, roll:12, adaptEvery:12, lurePct:Math.min(10,CFG.get('lurePct')) };
   return { initIv:INIT_IV, matchPct:30, roll:ROLL, adaptEvery:ADAPT_EVERY, lurePct:CFG.get('lurePct') };
 }
 
