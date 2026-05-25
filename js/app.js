@@ -4,6 +4,7 @@ const $  = id  => document.getElementById(id);
 const $$ = sel => document.querySelectorAll(sel);
 
 let CURRENT_PLAYER_NAME = '';
+let isTutorial = false;
 
 const firebaseConfig = {
   apiKey: "AIzaSyCNXJXQxYjZIXSNkjIlwfy-LHVGCnbEIgg",
@@ -1141,6 +1142,7 @@ function runDOBTurn() {
 
 function endDualOnboarding() {
   if(!DOB) return;
+  isTutorial = false;
   const onDone = DOB.onDone;
   dEnableBtn(false,false); showOBArrow(null);
   $$('#d-grid .cell').forEach(c=>c.classList.remove('ob-dim'));
@@ -1152,6 +1154,7 @@ function endDualOnboarding() {
 
 function stopDualOnboarding() {
   if(!DOB) return;
+  isTutorial = false;
   clearTimeout(DOB.t1); clearTimeout(DOB.t2); clearTimeout(DOB.t3);
   $('ob-hint-bar').style.display='none'; showOBArrow(null);
   $$('#d-grid .cell').forEach(c=>c.classList.remove('ob-dim'));
@@ -1161,6 +1164,7 @@ function stopDualOnboarding() {
 
 function endOnboarding() {
   if(!OB) return;
+  isTutorial = false;
   const onDone = OB.onDone;
   enableBtn(false); showOBArrow(null);
   setOBHint('Ya lo tienes. Ahora juega solo.', 'var(--prime)');
@@ -1171,6 +1175,7 @@ function endOnboarding() {
 
 function stopOnboarding() {
   if(!OB) return;
+  isTutorial = false;
   clearTimeout(OB.t1); clearTimeout(OB.t2); clearTimeout(OB.t3);
   $('ob-hint-bar').style.display='none'; showOBArrow(null);
   try{speechSynthesis.cancel();}catch(e){}
@@ -1977,6 +1982,7 @@ function initTuto(){
 let pendingModeAction=null;
 
 function maybeModeOverlay(mode, onStart){
+  if (!isTutorial) { onStart(); return; }
   if(DB.modeSeen(mode)){ onStart(); return; }
   DB.markMode(mode);
   // span keeps static intro; game modes get live onboarding
@@ -2036,6 +2042,7 @@ $('btn-mode-back').addEventListener('click',()=>show('s-menu'));
 
 // Start
 $('btn-start').addEventListener('click',()=>{
+  isTutorial = false;
   Snd.init();
   const nameInput = $('player-name') ? $('player-name').value.trim() : '';
   CURRENT_PLAYER_NAME = nameInput || ('Anon_' + Math.floor(100 + Math.random() * 900));
@@ -2107,6 +2114,7 @@ $('btn-recall-submit').addEventListener('click',spSubmitRecall);
 
 // Results
 $('btn-again').addEventListener('click',()=>{
+  isTutorial = false;
   if(currentMode==='dual'){ Snd.setBg(CFG.get('bgNoise')); show('s-dual'); startDual(selN,selDur); return; }
   if(currentMode==='span'){ Snd.setBg(CFG.get('bgNoise')); show('s-span'); startSpan(); return; }
   Snd.resumeAmb(); Snd.setBg(CFG.get('bgNoise'));
@@ -2148,10 +2156,21 @@ $$('#dual-audio-sel .lb').forEach(b=>b.addEventListener('click',()=>{
 $('snd').addEventListener('click',()=>{ Snd.init(); const on=Snd.toggle(); $('snd').textContent=on?'🔊':'🔇'; CFG.set('binauralOn',on); $$('#binaural-sel .lb').forEach(b=>b.classList.toggle('on',b.dataset.bin===(on?'on':'off'))); });
 
 // Tutorial
-function openTutorial(){ DB.markTutorSeen(); $('hint-banner').style.display='none'; initTuto(); show('s-tuto'); }
+function openTutorial(){
+  isTutorial = true;
+  DB.markTutorSeen();
+  $('hint-banner').style.display='none';
+  initTuto();
+  show('s-tuto');
+}
 $('btn-tuto').addEventListener('click',openTutorial);
 $('hint-banner').addEventListener('click',openTutorial);
-$('tuto-back').addEventListener('click',()=>{ tClear(); tOffAll(); show('s-menu'); });
+$('tuto-back').addEventListener('click',()=>{
+  isTutorial = false;
+  tClear();
+  tOffAll();
+  show('s-menu');
+});
 $('tuto-prev').addEventListener('click',()=>{ if(tutPanel>0) renderTutoPanel(tutPanel-1); });
 $('tuto-next').addEventListener('click',()=>{ if(tutPanel<2) renderTutoPanel(tutPanel+1); else{ tClear(); tOffAll(); show('s-menu'); } });
 $('tuto-match-btn').addEventListener('click',()=>tutoRespond());
