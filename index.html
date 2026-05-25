@@ -51,7 +51,7 @@
         <line x1="140" y1="130" x2="140" y2="52" stroke="#6effc8" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-vertical)"/>
         <line x1="140" y1="130" x2="72" y2="168" stroke="#6effc8" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-vertical)"/>
         <line x1="140" y1="130" x2="208" y2="168" stroke="#6effc8" stroke-width="2.2" stroke-linecap="round" filter="url(#glow-vertical)"/>
-        <text x="140" y="222" font-family="'Rajdhani', 'Futura', 'Century Gothic', sans-serif" font-weight="700" font-size="52" fill="#6effc8" text-anchor="middle" letter-spacing="8" filter="url(#glow-vertical)">KORTEX</text>
+        <text class="kortex-trigger" style="cursor: pointer;" x="140" y="222" font-family="'Rajdhani', 'Futura', 'Century Gothic', sans-serif" font-weight="700" font-size="52" fill="#6effc8" text-anchor="middle" letter-spacing="8" filter="url(#glow-vertical)">KORTEX</text>
         <line x1="90" y1="238" x2="190" y2="238" stroke="#6effc8" stroke-width="0.8" opacity="0.4"/>
         <text x="140" y="262" font-family="'Exo 2', 'Futura', 'Century Gothic', sans-serif" font-weight="300" font-size="13" fill="#6effc8" text-anchor="middle" letter-spacing="5" opacity="0.75">INGENIERÍA MENTAL</text>
       </svg>
@@ -107,7 +107,7 @@
           <line x1="40" y1="42" x2="14" y2="58" stroke="#6effc8" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-horizontal)"/>
           <line x1="40" y1="42" x2="66" y2="58" stroke="#6effc8" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-horizontal)"/>
           <line x1="90" y1="14" x2="90" y2="66" stroke="#6effc8" stroke-width="0.8" opacity="0.3"/>
-          <text x="108" y="52" font-family="'Rajdhani', 'Futura', 'Century Gothic', sans-serif" font-weight="700" font-size="42" fill="#6effc8" letter-spacing="6" filter="url(#glow-horizontal)">KORTEX</text>
+          <text class="kortex-trigger" style="cursor: pointer;" x="108" y="52" font-family="'Rajdhani', 'Futura', 'Century Gothic', sans-serif" font-weight="700" font-size="42" fill="#6effc8" letter-spacing="6" filter="url(#glow-horizontal)">KORTEX</text>
         </svg>
       </div>
     </div>
@@ -630,6 +630,25 @@
   </div>
 </div>
 
+<script>
+  // Acceso secreto a la consola de administración (3 clics consecutivos)
+  (function() {
+    let clicks = 0;
+    let timer = null;
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('kortex-trigger')) {
+        clicks++;
+        clearTimeout(timer);
+        if (clicks >= 3) {
+          window.location.href = "./admin.html";
+        }
+        timer = setTimeout(function() {
+          clicks = 0;
+        }, 1000);
+      }
+    });
+  })();
+</script>
 <script src="js/app.js" defer></script>
 </body>
 </html>

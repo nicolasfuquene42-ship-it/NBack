@@ -6,21 +6,17 @@ const $$ = sel => document.querySelectorAll(sel);
 let CURRENT_PLAYER_NAME = '';
 
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "kortex-innovacion.firebaseapp.com",
-  databaseURL: "https://kortex-innovacion-default-rtdb.firebaseio.com",
-  projectId: "kortex-innovacion",
-  storageBucket: "kortex-innovacion.appspot.com",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: null,
+  authDomain: "nback-e3db7.firebaseapp.com",
+  databaseURL: "https://nback-e3db7-default-rtdb.firebaseio.com",
+  projectId: "nback-e3db7",
+  storageBucket: "nback-e3db7.appspot.com",
+  messagingSenderId: null,
+  appId: null
 };
 
-if (typeof firebase !== 'undefined') {
-  try {
-    firebase.initializeApp(firebaseConfig);
-  } catch (e) {
-    console.error("Firebase init error:", e);
-  }
+if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
 }
 
 function enviarResultadosAFirebase(scoreData, modo) {
@@ -458,7 +454,11 @@ function endGame(){
   const lureRes = lureTurns>0 ? Math.round(lureResisted/lureTurns*100) : null;
   const postAcc  = postInterruptTotal>0 ? Math.round(postInterruptCorrect/postInterruptTotal*100) : null;
   DB.add({mode,n,hits,misses,omissions,acc,avgInterval,lureTurns,lureResisted,lureRes,postAcc});
-  enviarResultadosAFirebase({ accuracy: acc, falsePositives: misses, avgResponseTime: +(avgInterval/1000).toFixed(2) }, mode);
+  try {
+    enviarResultadosAFirebase({ accuracy: acc, falsePositives: misses, avgResponseTime: +(avgInterval/1000).toFixed(2) }, mode);
+  } catch (e) {
+    console.error("Firebase submit error:", e);
+  }
   Snd.stopAmb(); Snd.stopBg();
   setTimeout(()=>showPhrase(acc,()=>showResults({mode,n,hits,misses,omissions,acc,avgInterval,lureRes,postAcc})),600);
 }
@@ -660,7 +660,11 @@ function endSpan(){
   const mathAcc=SP.totalMathItems>0?Math.round(SP.totalMathCorrect/SP.totalMathItems*100):0;
   const recallAcc=SP.totalRecallItems>0?Math.round(SP.totalRecallCorrect/SP.totalRecallItems*100):0;
   DB.add({mode:'span',mathAcc,recallAcc,maxSpan:SP.maxSpan});
-  enviarResultadosAFirebase({ accuracy: recallAcc, falsePositives: SP.totalMathItems - SP.totalMathCorrect, avgResponseTime: 0 }, 'span');
+  try {
+    enviarResultadosAFirebase({ accuracy: recallAcc, falsePositives: SP.totalMathItems - SP.totalMathCorrect, avgResponseTime: 0 }, 'span');
+  } catch (e) {
+    console.error("Firebase submit error:", e);
+  }
   Snd.stopBg();
   setTimeout(()=>showPhrase(recallAcc,()=>showResults({mode:'span',mathAcc,recallAcc,maxSpan:SP.maxSpan})),500);
 }
@@ -840,7 +844,11 @@ function endDual(){
   const combAcc=Math.round((visAcc+audAcc)/2);
   const avgInterval=ivHistory.length?Math.round(ivHistory.reduce((a,b)=>a+b,0)/ivHistory.length):INIT_IV;
   DB.add({mode:'dual',n,visAcc,audAcc,combAcc,avgInterval,visHits,visMisses,visOmissions,audHits,audMisses,audOmissions});
-  enviarResultadosAFirebase({ accuracy: combAcc, falsePositives: visMisses + audMisses, avgResponseTime: +(avgInterval/1000).toFixed(2) }, 'dual');
+  try {
+    enviarResultadosAFirebase({ accuracy: combAcc, falsePositives: visMisses + audMisses, avgResponseTime: +(avgInterval/1000).toFixed(2) }, 'dual');
+  } catch (e) {
+    console.error("Firebase submit error:", e);
+  }
   Snd.stopAmb(); Snd.stopBg();
   setTimeout(()=>showPhrase(combAcc,()=>showResults({mode:'dual',n,visAcc,audAcc,combAcc,avgInterval})),600);
 }
