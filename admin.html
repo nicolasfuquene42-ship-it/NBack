@@ -746,45 +746,75 @@
     });
     
     // 2. CONEXIÓN Y SINCRONIZACIÓN CON FIREBASE
-    const firebaseConfig = {
-      apiKey: "AIzaSyCNXJXQxYjZIXSNkjIlwfy-LHVGCnbEIgg",
-      authDomain: "nback-6b98c.firebaseapp.com",
-      databaseURL: "https://nback-6b98c-default-rtdb.firebaseio.com",
-      projectId: "nback-6b98c",
-      storageBucket: "nback-6b98c.firebasestorage.app",
-      messagingSenderId: "192232324393",
-      appId: "1:192232324393:web:512e2640aa81ffcde24b38",
-      measurementId: "G-JWHKE4154D"
-    };
-    
     let db = null;
     
     function initFirebase() {
+      console.log("Inicializando Firebase con base de datos real...");
       try {
         if (window.firebase) {
-          if (!firebase.apps.length) {
+          // 1. Forzar la configuración del proyecto real nback-6b98c
+          const firebaseConfig = {
+            apiKey: "AIzaSyCNXJXQxYjZIXSNkjIlwfy-LHVGCnbEIgg",
+            authDomain: "nback-6b98c.firebaseapp.com",
+            databaseURL: "https://nback-6b98c-default-rtdb.firebaseio.com",
+            projectId: "nback-6b98c",
+            storageBucket: "nback-6b98c.firebasestorage.app",
+            messagingSenderId: "192232324393",
+            appId: "1:192232324393:web:512e2640aa81ffcde24b38",
+            measurementId: "G-JWHKE4154D"
+          };
+
+          // 2. Reinicializar la app si ya existía una instancia previa en caché
+          if (firebase.apps.length > 0) {
+            try {
+              firebase.app().delete().then(() => {
+                firebase.initializeApp(firebaseConfig);
+                conectarBaseDeDatos();
+              });
+              return;
+            } catch (e) {
+              console.warn("Error al resetear app de Firebase:", e);
+            }
+          } else {
             firebase.initializeApp(firebaseConfig);
           }
-          db = firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com");
           
-          // Setup listener with Compat API and proper real-time updates handling
-          firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com").ref("partidas").on("value", (snapshot) => {
-            try {
-              const data = snapshot.val();
-              console.log("Datos recibidos en tiempo real:", data);
-              processGameData(data);
-              flashVisualPanels();
-            } catch (err) {
-              console.error("Error al procesar los datos de Firebase:", err);
-            }
-          }, (error) => {
-            console.error("Error en la escucha de Realtime Database:", error);
-          });
+          conectarBaseDeDatos();
         } else {
           console.error("Firebase no está definido en el entorno global.");
         }
       } catch (e) {
         console.error("Fallo al inicializar Firebase: ", e);
+      }
+    }
+
+    function conectarBaseDeDatos() {
+      console.log("Conectando al nodo de partidas de nback-6b98c...");
+      try {
+        if (window.firebase) {
+          // IMPORTANTE: Pasamos la URL explícita como parámetro en la llamada para evitar que use la vieja de kortex-innovacion
+          db = firebase.database("https://nback-6b98c-default-rtdb.firebaseio.com");
+          
+          db.ref('partidas').on('value', (snapshot) => {
+            try {
+              const data = snapshot.val();
+              console.log("¡Conexión exitosa! Datos recibidos en tiempo real:", data);
+              processGameData(data);
+              flashVisualPanels();
+              if (typeof actualizarTablaRanking === 'function') {
+                actualizarTablaRanking(data);
+              }
+            } catch (err) {
+              console.error("Error al procesar los datos de Firebase:", err);
+            }
+          }, (error) => {
+            console.error("Error crítico de lectura en Realtime Database:", error);
+          });
+        } else {
+          console.error("Firebase no está definido en el entorno global.");
+        }
+      } catch (e) {
+        console.error("Error en conectarBaseDeDatos: ", e);
       }
     }
     
