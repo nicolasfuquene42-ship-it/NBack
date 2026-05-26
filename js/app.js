@@ -1195,7 +1195,7 @@ function stopOnboarding() {
 (function(){
   const el=$('tgrid');
   if(!el) return;
-  for(let i=0;i<9;i++){ const c=document.createElement('div'); c.className='tcell'; c.id='tc'+i; el.appendChild(c); }
+  for(let i=0;i<9;i++){ const c=document.createElement('div'); c.className='tcell'; c.id='tc-'+i; el.appendChild(c); }
 })();
 // Build dual grid
 (function(){
