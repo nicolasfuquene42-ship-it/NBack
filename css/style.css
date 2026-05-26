@@ -476,3 +476,105 @@ body.on-menu #snd { display:none; }
   50% { opacity: 1; }
   100% { opacity: 0.6; }
 }
+
+/* ── Kortex Menu Tutorial Capsule (Esmerilada Premium) ── */
+.kortex-menu-tutorial-capsule {
+  background: linear-gradient(135deg, rgba(110, 255, 200, 0.06) 0%, rgba(110, 255, 200, 0.01) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(110, 255, 200, 0.18);
+  border-radius: 14px;
+  padding: 12px 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 
+              0 0 12px rgba(110, 255, 200, 0.05),
+              inset 0 0 8px rgba(110, 255, 200, 0.02);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease, background 0.25s ease;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.kortex-menu-tutorial-capsule::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(110, 255, 200, 0) 0%,
+    rgba(110, 255, 200, 0.06) 50%,
+    rgba(110, 255, 200, 0) 100%
+  );
+  transform: skewX(-25deg);
+  transition: 0.75s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.kortex-menu-tutorial-capsule:hover::before {
+  left: 125%;
+  opacity: 1;
+}
+
+.kortex-menu-tutorial-capsule:hover {
+  background: linear-gradient(135deg, rgba(110, 255, 200, 0.1) 0%, rgba(110, 255, 200, 0.03) 100%);
+  border-color: rgba(110, 255, 200, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45),
+              0 0 18px rgba(110, 255, 200, 0.2),
+              inset 0 0 10px rgba(110, 255, 200, 0.05);
+  transform: translateY(-2px);
+}
+
+.kortex-menu-tutorial-capsule:active {
+  transform: translateY(0px) scale(0.98);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35),
+              0 0 12px rgba(110, 255, 200, 0.12);
+}
+
+.capsule-hint-icon-box {
+  background: rgba(110, 255, 200, 0.05);
+  border: 1px solid rgba(110, 255, 200, 0.2);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.kortex-menu-tutorial-capsule:hover .capsule-hint-icon-box {
+  background: rgba(110, 255, 200, 0.12);
+  border-color: rgba(110, 255, 200, 0.6);
+  box-shadow: 0 0 10px rgba(110, 255, 200, 0.15), inset 0 0 6px rgba(110, 255, 200, 0.1);
+}
+
+.capsule-hint-icon-box svg {
+  transition: transform 0.3s ease;
+}
+
+.kortex-menu-tutorial-capsule:hover .capsule-hint-icon-box svg {
+  transform: scale(1.1);
+}
+
+.capsule-hint-badge {
+  background: rgba(110, 255, 200, 0.08);
+  border: 1px solid rgba(110, 255, 200, 0.25);
+  color: #6effc8;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 4px rgba(110, 255, 200, 0.2);
+  transition: all 0.25s ease;
+}
+
+.kortex-menu-tutorial-capsule:hover .capsule-hint-badge {
+  background: rgba(110, 255, 200, 0.18);
+  border-color: rgba(110, 255, 200, 0.5);
+  box-shadow: 0 0 8px rgba(110, 255, 200, 0.2);
+}

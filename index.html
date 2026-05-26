@@ -138,8 +138,28 @@
   <!-- ── Body ── -->
   <div class="menu-body">
     <!-- Hint banner -->
-    <div id="hint-banner" class="hint-banner" style="margin-bottom:12px">
-      Tutorial Guiado Paso a Paso → <strong>(2 min)</strong>
+    <div id="hint-banner" class="kortex-menu-tutorial-capsule" style="display: none; cursor: pointer; width: 100%; max-width: 340px; margin: 0 auto 16px; position: relative;">
+      <div class="capsule-hint-content" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        
+        <div style="display: flex; align-items: center; gap: 12px; text-align: left;">
+          <div class="capsule-hint-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="9" stroke="#6effc8" stroke-width="1.5" opacity="0.4" stroke-dasharray="2 2"/>
+              <path d="M12 7V12L15 14" stroke="#6effc8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 3C7.03 3 3 7.03 3 12C3 13.74 3.5 15.37 4.35 16.76L3 21L7.33 19.62C8.68 20.5 10.28 21 12 21C16.97 21 21 16.97 21 12C21 7.03 16.97 3 12 3Z" stroke="#6effc8" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <h4 style="font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--text); letter-spacing: 1px; margin: 0;">¿PRIMERA VEZ?</h4>
+            <p style="font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.76rem; color: var(--muted); margin: 2px 0 0 0;">Hazlo guiado paso a paso</p>
+          </div>
+        </div>
+        
+        <div style="text-align: right; flex-shrink: 0;">
+          <span class="capsule-hint-badge">(2 MIN)</span>
+        </div>
+
+      </div>
     </div>
 
     <!-- All mode cards — ID kept for JS selector -->
