@@ -2103,19 +2103,40 @@ $$('#st-tabs .cbtn').forEach(b=>b.addEventListener('click',()=>{
 }));
 $$('#cbtns .cbtn').forEach(b=>b.addEventListener('click',()=>{ $$('#cbtns .cbtn').forEach(x=>x.classList.remove('on')); b.classList.add('on'); activeStTab==='dual'?drawDualChart(+b.dataset.cv):drawChart(+b.dataset.cv); }));
 
-// Settings
+// Función unificada para abrir los ajustes de forma segura limpiando juegos activos
+function abrirAjustesMenu(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  // Detener de forma segura cualquier motor en ejecución
+  if (typeof stopGame === 'function') stopGame();
+  if (typeof stopSpan === 'function') stopSpan();
+  if (typeof stopDual === 'function') stopDual();
+  
+  // Renderizar la interfaz y forzar visibilidad
+  renderSettings();
+  show('s-settings');
+  
+  // Ajustar estados activos en el navbar inferior
+  $$('.nav-item').forEach(n => n.classList.remove('on'));
+  const navAjustes = $('nav-ajustes');
+  if (navAjustes) navAjustes.classList.add('on');
+  document.body.classList.add('on-menu');
+}
+
+// Asignación segura de listeners para asegurar que responda al click y al tap táctil
 document.addEventListener('DOMContentLoaded', () => {
-  const cfgBtn = document.getElementById('btn-cfg') || $('btn-cfg');
-  if (cfgBtn) {
-    cfgBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      stopGame();
-      if (typeof stopSpan === 'function') stopSpan();
-      if (typeof stopDual === 'function') stopDual();
-      renderSettings();
-      show('s-settings');
-    });
+  const btnCfg = $('btn-cfg');
+  const navAjustes = $('nav-ajustes');
+  
+  if (btnCfg) {
+    btnCfg.addEventListener('click', abrirAjustesMenu);
+    btnCfg.addEventListener('touchstart', abrirAjustesMenu, { passive: false });
+  }
+  if (navAjustes) {
+    navAjustes.addEventListener('click', abrirAjustesMenu);
+    navAjustes.addEventListener('touchstart', abrirAjustesMenu, { passive: false });
   }
 });
 $('btn-cfg-back').addEventListener('click',()=>show('s-menu'));
@@ -2351,7 +2372,6 @@ $('import-file-input').addEventListener('change',e=>{
 // Bottom nav + hero settings
 $('nav-inicio').addEventListener('click',()=>show('s-menu'));
 $('nav-progreso').addEventListener('click',()=>{ show('s-stats'); renderStats(); document.body.classList.add('on-menu'); $('nav-progreso').classList.add('on'); $('nav-inicio').classList.remove('on'); });
-$('nav-ajustes').addEventListener('click',()=>{ renderSettings(); show('s-settings'); document.body.classList.add('on-menu'); $('nav-ajustes').classList.add('on'); $('nav-inicio').classList.remove('on'); });
 
 // Keyboard
 document.addEventListener('keydown',e=>{
