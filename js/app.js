@@ -177,7 +177,7 @@ const Snd = (() => {
   };
 
   return {
-    init()      { if (on) startAmbient(); },
+    init()      { if (on) { const a = ac(); if (a.state === 'suspended') a.resume(); startAmbient(); } },
     stopAmb()   { fadeMaster(0,1.8); },
     resumeAmb() { if(!on) return; !started ? startAmbient() : fadeMaster(.38,1.6); },
     cell()      { shot(528,.22,.09); },
@@ -2104,12 +2104,19 @@ $$('#st-tabs .cbtn').forEach(b=>b.addEventListener('click',()=>{
 $$('#cbtns .cbtn').forEach(b=>b.addEventListener('click',()=>{ $$('#cbtns .cbtn').forEach(x=>x.classList.remove('on')); b.classList.add('on'); activeStTab==='dual'?drawDualChart(+b.dataset.cv):drawChart(+b.dataset.cv); }));
 
 // Settings
-$('btn-cfg').addEventListener('click', () => { 
-  stopGame();
-  stopSpan();
-  stopDual();
-  renderSettings(); 
-  show('s-settings'); 
+document.addEventListener('DOMContentLoaded', () => {
+  const cfgBtn = document.getElementById('btn-cfg') || $('btn-cfg');
+  if (cfgBtn) {
+    cfgBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      stopGame();
+      if (typeof stopSpan === 'function') stopSpan();
+      if (typeof stopDual === 'function') stopDual();
+      renderSettings();
+      show('s-settings');
+    });
+  }
 });
 $('btn-cfg-back').addEventListener('click',()=>show('s-menu'));
 $$('#noise-sel .lb').forEach(b=>b.addEventListener('click',()=>{
@@ -2371,9 +2378,19 @@ if(!CFG.get('binauralOn') && Snd.on){ Snd.toggle(); $('snd').textContent='🔇';
 
 // Auto-start binaural on first user gesture (Web Audio API requires user activation)
 let _audioReady = false;
-document.body.addEventListener('pointerdown', () => {
-  if(!_audioReady){ _audioReady=true; if(CFG.get('binauralOn')) Snd.init(); }
-}, { once:true, passive:true });
+const initAudioOnGesture = () => {
+  if (!_audioReady) {
+    _audioReady = true;
+    if (CFG.get('binauralOn')) Snd.init();
+    // Clean up
+    ['pointerdown', 'touchstart', 'click'].forEach(evt => {
+      document.removeEventListener(evt, initAudioOnGesture, true);
+    });
+  }
+};
+['pointerdown', 'touchstart', 'click'].forEach(evt => {
+  document.addEventListener(evt, initAudioOnGesture, true);
+});
 
 // Sync sound icon
 $('snd').textContent=Snd.on?'🔊':'🔇';
