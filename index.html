@@ -315,18 +315,21 @@
     <span style="font-size:.78rem;color:var(--muted)" id="sp-round">Ronda 1/8</span>
   </div>
   <div class="prog-track" style="margin-bottom:20px"><div class="prog-fill" id="sp-prog"></div></div>
-  <!-- Math area -->
-  <div id="sp-math-area">
-    <div class="sp-eq" id="sp-eq">3 + 4 = 7 ?</div>
-    <div style="height:20px;text-align:center;margin-top:8px;font-size:.72rem;color:var(--muted)" id="sp-timer-bar"></div>
-    <div style="display:flex;gap:12px;justify-content:center;margin-top:18px">
-      <button class="btn btn-p" id="sp-true"  style="width:130px;font-size:.9rem">Verdadero</button>
-      <button class="btn btn-o" id="sp-false" style="width:130px;font-size:.9rem">Falso</button>
+  <!-- Container with fixed height to prevent layout shifts and improve visual centering -->
+  <div style="height:150px; display:flex; align-items:center; justify-content:center; width:100%; max-width:320px; margin-bottom:20px;">
+    <!-- Math area -->
+    <div id="sp-math-area" style="width:100%;">
+      <div class="sp-eq" id="sp-eq">3 + 4 = 7 ?</div>
+      <div style="height:20px;text-align:center;margin-top:8px;font-size:.72rem;color:var(--muted)" id="sp-timer-bar"></div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:18px">
+        <button class="btn btn-p" id="sp-true"  style="width:130px;font-size:.9rem">Verdadero</button>
+        <button class="btn btn-o" id="sp-false" style="width:130px;font-size:.9rem">Falso</button>
+      </div>
     </div>
-  </div>
-  <!-- Letter flash -->
-  <div id="sp-letter-area" style="display:none">
-    <div class="sp-letter" id="sp-letter">A</div>
+    <!-- Letter flash -->
+    <div id="sp-letter-area" style="display:none; width:100%; text-align:center;">
+      <div class="sp-letter" id="sp-letter">A</div>
+    </div>
   </div>
   <!-- Trial dots -->
   <div id="sp-dots" style="display:flex;gap:7px;justify-content:center;margin-top:18px;min-height:16px"></div>
@@ -527,21 +530,24 @@
   <div style="height:44px"></div>
 </div>
 
-<!-- ━━━━━━ NEW INTERACTIVE TUTORIAL ━━━━━━ -->
-<div id="s-tutorial" class="scr" style="justify-content:flex-start;padding-top:0">
+<!-- ━━━━━━ TUTORIAL ━━━━━━ -->
+<div id="s-tuto" class="scr" style="justify-content:flex-start;padding-top:0">
   <div class="sticky-hdr">
-    <button class="btn-ic" id="t-back-btn">←</button>
-    <span style="font-size:1.05rem;font-weight:600;margin-left:8px;font-family:'Rajdhani',sans-serif;letter-spacing:.04em">Tutorial Interactivo</span>
+    <button class="btn-ic" id="tuto-back">←</button>
+    <span style="font-size:1.05rem;font-weight:600;margin-left:8px;font-family:'Rajdhani',sans-serif;letter-spacing:.04em">Cómo jugar</span>
   </div>
   
   <div style="width:100%;max-width:340px;margin-top:20px;display:flex;flex-direction:column;align-items:center;">
-    <!-- Large prominent subtitle/instruction card -->
-    <div id="t-instruction-card" style="width:100%;background:rgba(26,34,53,0.8);border:1px solid var(--prime);box-shadow:0 0 15px rgba(110,255,200,0.25);border-radius:12px;padding:16px;margin-bottom:20px;font-family:'DM Sans',sans-serif;color:var(--text);line-height:1.6;font-size:0.9rem;text-align:center;min-height:110px;display:flex;flex-direction:column;justify-content:center;">
+    <!-- Un div con id="tuto-content" para los títulos y descripciones cambiantes. -->
+    <div id="tuto-content" style="width:100%;background:rgba(26,34,53,0.8);border:1px solid var(--prime);box-shadow:0 0 15px rgba(110,255,200,0.25);border-radius:12px;padding:16px;margin-bottom:20px;font-family:'DM Sans',sans-serif;color:var(--text);line-height:1.6;font-size:0.9rem;text-align:center;min-height:110px;display:flex;flex-direction:column;justify-content:center;box-sizing:border-box;">
       Cargando tutorial...
     </div>
 
-    <!-- 3x3 Grid for visual stimulus -->
-    <div class="tgrid" id="t-grid" style="margin-bottom:16px;">
+    <!-- Un div con id="tuto-grid-sequence" (inicialmente oculto con display:none) con un layout de CSS Grid. -->
+    <div id="tuto-grid-sequence" style="display:none; width:100%; margin-bottom:20px;"></div>
+
+    <!-- Mantén la grilla tradicional class="tgrid" id="tgrid" -->
+    <div class="tgrid" id="tgrid" style="display:none; margin-bottom:16px;">
       <div class="tcell" id="tc-0"></div>
       <div class="tcell" id="tc-1"></div>
       <div class="tcell" id="tc-2"></div>
@@ -554,22 +560,32 @@
     </div>
 
     <!-- Audio indicator / Letter display -->
-    <div id="t-letter-display" style="font-family:'Rajdhani',sans-serif;font-size:2.8rem;font-weight:700;color:var(--prime);margin-bottom:20px;height:60px;display:flex;align-items:center;justify-content:center;text-shadow:0 0 10px rgba(110,255,200,0.5)"></div>
+    <div id="tuto-letter-display" style="font-family:'Rajdhani',sans-serif;font-size:2.8rem;font-weight:700;color:var(--prime);margin-bottom:20px;height:60px;display:flex;align-items:center;justify-content:center;text-shadow:0 0 10px rgba(110,255,200,0.5)"></div>
 
-    <!-- Interactive Buttons -->
-    <div class="dual-btns" style="justify-content:center;margin-bottom:20px;width:100%">
-      <button class="dbtn" id="t-btn-pos" style="flex:1;height:54px;">
-        <span class="dbtn-sub">Posición (A)</span>
-        Ubicación
-      </button>
-      <button class="dbtn" id="t-btn-sound" style="flex:1;height:54px;">
-        <span class="dbtn-sub">Sonido (L)</span>
-        Sonido
-      </button>
+    <!-- y los botones interactivos de validación lentos (tuto-match-area y tuto-done) intactos para el flujo de Dual N-Back. -->
+    <div id="tuto-match-area" style="display:none; width:100%;">
+      <div class="dual-btns" style="justify-content:center;margin-bottom:20px;width:100%">
+        <button class="dbtn" id="tuto-btn-match-pos" style="flex:1;height:54px;">
+          <span class="dbtn-sub">Posición (A)</span>
+          Ubicación
+        </button>
+        <button class="dbtn" id="tuto-btn-match-sound" style="flex:1;height:54px;">
+          <span class="dbtn-sub">Sonido (L)</span>
+          Sonido
+        </button>
+      </div>
     </div>
 
-    <!-- Siguiente/Action Button -->
-    <button class="btn-primary-full" id="t-btn-next" style="width:100%;height:52px;display:none;">SIGUIENTE</button>
+    <div id="tuto-done" style="display:none; width:100%;">
+      <button class="btn-primary-full" id="tuto-start-btn" style="width:100%;height:52px;">SIGUIENTE</button>
+    </div>
+  </div>
+  
+  <!-- Navigation Controls (Anterior / Siguiente) -->
+  <div id="tuto-nav-buttons" style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:340px;margin-top:16px;margin-bottom:8px">
+    <button class="txt-btn" id="tuto-prev" style="visibility:hidden">← Anterior</button>
+    <div class="tuto-dots" id="tuto-dots"></div>
+    <button class="txt-btn" id="tuto-next">Siguiente →</button>
   </div>
 </div>
 

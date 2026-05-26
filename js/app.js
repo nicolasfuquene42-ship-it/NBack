@@ -74,7 +74,7 @@ function enviarResultadosAFirebase(scoreData, modo) {
 ══════════════════════════════════════════ */
 const CFG = (() => {
   const K = 'nback_cfg';
-  const DEF = { lurePct:20, bgNoise:'silence', binauralOn:false, dualAudioOn:true };
+  const DEF = { lurePct:20, bgNoise:'silence', binauralOn:true, dualAudioOn:true };
   const load = () => { try { return {...DEF,...JSON.parse(localStorage.getItem(K))}; } catch { return {...DEF}; } };
   const save = d => { try { localStorage.setItem(K, JSON.stringify(d)); } catch {} };
   return {
@@ -1633,9 +1633,13 @@ function startInteractiveTutorial() {
   tutActive = true;
   isTutorial = true;
   
+  // Show traditional grid and audio display
+  $('tgrid').style.display = 'grid';
+  $('tuto-letter-display').style.display = 'flex';
+  
   // Reset buttons status
-  const bp = $('t-btn-pos');
-  const bs = $('t-btn-sound');
+  const bp = $('tuto-btn-match-pos');
+  const bs = $('tuto-btn-match-sound');
   if (bp) {
     bp.className = 'dbtn';
     bp.disabled = false;
@@ -1645,8 +1649,8 @@ function startInteractiveTutorial() {
     bs.disabled = false;
   }
   
-  const nextBtn = $('t-btn-next');
-  if (nextBtn) nextBtn.style.display = 'none';
+  const startBtn = $('tuto-start-btn');
+  if (startBtn) startBtn.style.display = 'none';
 
   runTutorialStep(1);
 }
@@ -1672,16 +1676,27 @@ function runTutorialStep(step) {
   tutStep = step;
   tResetGrid();
   
-  const disp = $('t-letter-display');
+  const disp = $('tuto-letter-display');
   if (disp) disp.textContent = '';
   
-  const bp = $('t-btn-pos');
-  const bs = $('t-btn-sound');
-  const nextBtn = $('t-btn-next');
+  const bp = $('tuto-btn-match-pos');
+  const bs = $('tuto-btn-match-sound');
+  const startBtn = $('tuto-start-btn');
+  const doneArea = $('tuto-done');
+  const matchArea = $('tuto-match-area');
+  const prevBtn = $('tuto-prev');
+  const nextBtn = $('tuto-next');
   
   if (bp) bp.classList.remove('blink-highlight', 'hit', 'miss', 'ready');
   if (bs) bs.classList.remove('blink-highlight', 'hit', 'miss', 'ready');
-  if (nextBtn) nextBtn.style.display = 'none';
+  if (startBtn) startBtn.style.display = 'none';
+  if (doneArea) doneArea.style.display = 'none';
+  if (matchArea) matchArea.style.display = 'none';
+  if (prevBtn) prevBtn.style.visibility = 'hidden';
+  if (nextBtn) nextBtn.style.visibility = 'hidden';
+  
+  // Render dots for 6 steps
+  renderTutoDots(6, step - 1);
   
   if (step === 1) {
     tLightCell(0);
@@ -1689,8 +1704,8 @@ function runTutorialStep(step) {
     speakLetter('A');
     Snd.cell();
     
-    $('t-instruction-card').innerHTML = `
-      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
         Turno 1 / 5: Estímulo Inicial
       </div>
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
@@ -1701,9 +1716,10 @@ function runTutorialStep(step) {
         Aquí <strong>NO debes presionar nada</strong>. Es el primer paso del juego. Memoriza la posición y la letra, luego presiona [Siguiente].
       </div>
     `;
-    if (nextBtn) {
-      nextBtn.textContent = 'SIGUIENTE';
-      nextBtn.style.display = 'block';
+    if (doneArea) doneArea.style.display = 'block';
+    if (startBtn) {
+      startBtn.textContent = 'SIGUIENTE';
+      startBtn.style.display = 'block';
     }
     
   } else if (step === 2) {
@@ -1712,8 +1728,8 @@ function runTutorialStep(step) {
     speakLetter('F');
     Snd.cell();
     
-    $('t-instruction-card').innerHTML = `
-      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
         Turno 2 / 5: Memorización
       </div>
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
@@ -1724,9 +1740,10 @@ function runTutorialStep(step) {
         Tampoco debes presionar nada. Llevamos 2 turnos. Para comparar con "hace 2 turnos" (N=2), necesitamos esperar al Turno 3. Presiona [Siguiente].
       </div>
     `;
-    if (nextBtn) {
-      nextBtn.textContent = 'SIGUIENTE';
-      nextBtn.style.display = 'block';
+    if (doneArea) doneArea.style.display = 'block';
+    if (startBtn) {
+      startBtn.textContent = 'SIGUIENTE';
+      startBtn.style.display = 'block';
     }
     
   } else if (step === 3) {
@@ -1735,7 +1752,6 @@ function runTutorialStep(step) {
     speakLetter('R');
     Snd.cell();
     
-    // Highlight Turn 1 cell (which was also 0) after a short delay
     setTimeout(() => {
       if (tutStep === 3 && tutActive) {
         const c = $('tc-0');
@@ -1746,8 +1762,8 @@ function runTutorialStep(step) {
       }
     }, 400);
 
-    $('t-instruction-card').innerHTML = `
-      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
         Turno 3 / 5: Coincidencia de Posición
       </div>
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
@@ -1760,6 +1776,7 @@ function runTutorialStep(step) {
         El juego está congelado. Presiona el botón <strong style="color:var(--prime)">UBICACIÓN</strong> ahora para marcar tu acierto y avanzar.
       </div>
     `;
+    if (matchArea) matchArea.style.display = 'block';
     if (bp) bp.classList.add('blink-highlight');
     
   } else if (step === 4) {
@@ -1768,8 +1785,8 @@ function runTutorialStep(step) {
     speakLetter('F');
     Snd.cell();
     
-    $('t-instruction-card').innerHTML = `
-      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
         Turno 4 / 5: Coincidencia de Sonido
       </div>
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
@@ -1782,6 +1799,7 @@ function runTutorialStep(step) {
         La pantalla está congelada. Presiona el botón <strong style="color:var(--prime)">SONIDO</strong> ahora para avanzar.
       </div>
     `;
+    if (matchArea) matchArea.style.display = 'block';
     if (bs) bs.classList.add('blink-highlight');
     
   } else if (step === 5) {
@@ -1790,8 +1808,8 @@ function runTutorialStep(step) {
     speakLetter('X');
     Snd.cell();
     
-    $('t-instruction-card').innerHTML = `
-      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
         Turno 5 / 5: Sin Coincidencias
       </div>
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
@@ -1803,17 +1821,18 @@ function runTutorialStep(step) {
         En este caso <strong>NO debes tocar ningún botón</strong>. En el juego real, simplemente dejas pasar el turno sin oprimir nada. Presiona [Siguiente].
       </div>
     `;
-    if (nextBtn) {
-      nextBtn.textContent = 'SIGUIENTE';
-      nextBtn.style.display = 'block';
+    if (doneArea) doneArea.style.display = 'block';
+    if (startBtn) {
+      startBtn.textContent = 'SIGUIENTE';
+      startBtn.style.display = 'block';
     }
     
   } else if (step === 6) {
     tResetGrid();
     if (disp) disp.textContent = '🏁';
     
-    $('t-instruction-card').innerHTML = `
-      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
         ¡Tutorial Completado!
       </div>
       <div style="font-size: 0.88rem; color: var(--text); line-height: 1.65; margin-bottom: 12px;">
@@ -1821,9 +1840,10 @@ function runTutorialStep(step) {
         En la partida real, los estímulos cambian de forma fluida y continua cada 4.5 segundos sin detenerse. Mantén tu concentración y responde rápido.
       </div>
     `;
-    if (nextBtn) {
-      nextBtn.textContent = 'IR AL MENÚ PRINCIPAL';
-      nextBtn.style.display = 'block';
+    if (doneArea) doneArea.style.display = 'block';
+    if (startBtn) {
+      startBtn.textContent = 'IR AL MENÚ PRINCIPAL';
+      startBtn.style.display = 'block';
     }
   }
 }
@@ -1831,18 +1851,26 @@ function runTutorialStep(step) {
 function handleTutorialInteraction(type) {
   if (!tutActive) return;
   
+  const bp = $('tuto-btn-match-pos');
+  const bs = $('tuto-btn-match-sound');
+  const startBtn = $('tuto-start-btn');
+  const doneArea = $('tuto-done');
+  const matchArea = $('tuto-match-area');
+  
   if (tutStep === 3 && type === 'pos') {
     Snd.hit();
-    $('t-btn-pos').classList.remove('blink-highlight');
-    $('t-btn-pos').classList.add('hit');
+    if (bp) {
+      bp.classList.remove('blink-highlight');
+      bp.classList.add('hit');
+    }
     
     const c = $('tc-0');
     if (c) {
       c.classList.add('lit-ok');
     }
     
-    $('t-instruction-card').innerHTML = `
-      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
         ¡Excelente!
       </div>
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
@@ -1854,24 +1882,29 @@ function handleTutorialInteraction(type) {
       </div>
     `;
     
-    const nextBtn = $('t-btn-next');
-    if (nextBtn) {
-      nextBtn.textContent = 'SIGUIENTE';
-      nextBtn.style.display = 'block';
+    if (matchArea) matchArea.style.display = 'none';
+    if (doneArea) doneArea.style.display = 'block';
+    if (startBtn) {
+      startBtn.textContent = 'SIGUIENTE';
+      startBtn.style.display = 'block';
     }
     
   } else if (tutStep === 3 && type === 'sound') {
     Snd.falseAlarm();
-    $('t-btn-sound').classList.add('miss');
-    setTimeout(() => $('t-btn-sound').classList.remove('miss'), 500);
+    if (bs) {
+      bs.classList.add('miss');
+      setTimeout(() => bs.classList.remove('miss'), 500);
+    }
     
   } else if (tutStep === 4 && type === 'sound') {
     Snd.hit();
-    $('t-btn-sound').classList.remove('blink-highlight');
-    $('t-btn-sound').classList.add('hit');
+    if (bs) {
+      bs.classList.remove('blink-highlight');
+      bs.classList.add('hit');
+    }
     
-    $('t-instruction-card').innerHTML = `
-      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
         ¡Excelente!
       </div>
       <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
@@ -1883,16 +1916,19 @@ function handleTutorialInteraction(type) {
       </div>
     `;
     
-    const nextBtn = $('t-btn-next');
-    if (nextBtn) {
-      nextBtn.textContent = 'SIGUIENTE';
-      nextBtn.style.display = 'block';
+    if (matchArea) matchArea.style.display = 'none';
+    if (doneArea) doneArea.style.display = 'block';
+    if (startBtn) {
+      startBtn.textContent = 'SIGUIENTE';
+      startBtn.style.display = 'block';
     }
     
   } else if (tutStep === 4 && type === 'pos') {
     Snd.falseAlarm();
-    $('t-btn-pos').classList.add('miss');
-    setTimeout(() => $('t-btn-pos').classList.remove('miss'), 500);
+    if (bp) {
+      bp.classList.add('miss');
+      setTimeout(() => bp.classList.remove('miss'), 500);
+    }
   }
 }
 
@@ -1900,12 +1936,13 @@ function closeTutorialAndStart() {
   tutActive = false;
   isTutorial = false;
   
-  // Set to Dual N-Back level 2 (principiante)
-  selMode = 'dual';
-  selN = 2;
-  
-  // Show configuration screen
-  showModeConfig('dual');
+  if (selMode === 'span') {
+    showModeConfig('span');
+  } else {
+    selMode = 'dual';
+    selN = 2;
+    showModeConfig('dual');
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -2067,7 +2104,13 @@ $$('#st-tabs .cbtn').forEach(b=>b.addEventListener('click',()=>{
 $$('#cbtns .cbtn').forEach(b=>b.addEventListener('click',()=>{ $$('#cbtns .cbtn').forEach(x=>x.classList.remove('on')); b.classList.add('on'); activeStTab==='dual'?drawDualChart(+b.dataset.cv):drawChart(+b.dataset.cv); }));
 
 // Settings
-$('btn-cfg').addEventListener('click',()=>{ renderSettings(); show('s-settings'); });
+$('btn-cfg').addEventListener('click', () => { 
+  stopGame();
+  stopSpan();
+  stopDual();
+  renderSettings(); 
+  show('s-settings'); 
+});
 $('btn-cfg-back').addEventListener('click',()=>show('s-menu'));
 $$('#noise-sel .lb').forEach(b=>b.addEventListener('click',()=>{
   $$('#noise-sel .lb').forEach(x=>x.classList.remove('on')); b.classList.add('on');
@@ -2088,38 +2131,157 @@ $$('#dual-audio-sel .lb').forEach(b=>b.addEventListener('click',()=>{
 $('snd').addEventListener('click',()=>{ Snd.init(); const on=Snd.toggle(); $('snd').textContent=on?'🔊':'🔇'; CFG.set('binauralOn',on); $$('#binaural-sel .lb').forEach(b=>b.classList.toggle('on',b.dataset.bin===(on?'on':'off'))); });
 
 // Tutorial
+// Tutorial
+let tutoIdx = 0;
+
+function renderTutoDots(total, current) {
+  const dotsContainer = $('tuto-dots');
+  if (!dotsContainer) return;
+  dotsContainer.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'tuto-dot' + (i === current ? ' on' : '');
+    dotsContainer.appendChild(dot);
+  }
+}
+
+function renderTutoPanel(idx) {
+  tutoIdx = idx;
+  renderTutoDots(3, idx);
+  
+  const prevBtn = $('tuto-prev');
+  if (prevBtn) {
+    prevBtn.style.visibility = idx === 0 ? 'hidden' : 'visible';
+  }
+  
+  const nextBtn = $('tuto-next');
+  const doneArea = $('tuto-done');
+  const startBtn = $('tuto-start-btn');
+  
+  if (idx === 2) {
+    if (nextBtn) nextBtn.style.visibility = 'hidden';
+    if (doneArea) doneArea.style.display = 'block';
+    if (startBtn) {
+      startBtn.textContent = 'COMENZAR SESIÓN';
+      startBtn.style.display = 'block';
+    }
+  } else {
+    if (nextBtn) {
+      nextBtn.style.visibility = 'visible';
+      nextBtn.textContent = 'Siguiente →';
+    }
+    if (doneArea) doneArea.style.display = 'none';
+  }
+  
+  const content = $('tuto-content');
+  if (!content) return;
+  
+  if (idx === 0) {
+    content.innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 12px; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
+        ¿Qué es Span Complejo?
+      </div>
+      <div style="font-size: 0.88rem; color: var(--text); line-height: 1.6;">
+        El Span Complejo es una prueba de memoria de trabajo que desafía tu capacidad de procesar información bajo presión.
+        <br><br>
+        Resolverás una serie de <strong>ecuaciones matemáticas simples</strong> de Verdadero o Falso, alternadas con <strong>letras que debes memorizar</strong> en orden.
+      </div>
+    `;
+  } else if (idx === 1) {
+    content.innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 12px; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
+        El Ciclo de Atención
+      </div>
+      <div style="font-size: 0.88rem; color: var(--text); line-height: 1.6; text-align: left;">
+        Cada turno se divide en dos fases:
+        <br><br>
+        1. <strong>Operación Matemática</strong>: Resuelve la ecuación (ej: <code>3 + 4 = 7 ?</code>) pulsando [Verdadero] o [Falso] en menos de 5 segundos.
+        <br>
+        2. <strong>Aparición de Letra</strong>: Inmediatamente se mostrará una letra en pantalla durante 1.5 segundos para que la memorices.
+      </div>
+    `;
+  } else if (idx === 2) {
+    content.innerHTML = `
+      <div style="font-weight: bold; color: var(--prime); margin-bottom: 12px; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
+        Fase de Recuerdo
+      </div>
+      <div style="font-size: 0.88rem; color: var(--text); line-height: 1.6;">
+        Al finalizar la ronda, aparecerá un <strong>teclado en pantalla</strong>.
+        <br><br>
+        Introduce la secuencia completa de letras en el <strong>orden exacto</strong> en el que aparecieron.
+        <br><br>
+        El nivel de Span se adaptará automáticamente según tu precisión en el recuerdo.
+      </div>
+    `;
+  }
+}
+
 function openTutorial(){
   isTutorial = true;
   DB.markTutorSeen();
-  show('s-tutorial');
-  startInteractiveTutorial();
+  show('s-tuto');
+  
+  if (selMode === 'span') {
+    $('tgrid').style.display = 'none';
+    $('tuto-grid-sequence').style.display = 'none';
+    $('tuto-letter-display').style.display = 'none';
+    $('tuto-match-area').style.display = 'none';
+    $('tuto-done').style.display = 'none';
+    $('tuto-nav-buttons').style.display = 'flex';
+    renderTutoPanel(0);
+  } else {
+    $('tgrid').style.display = 'none';
+    $('tuto-grid-sequence').style.display = 'none';
+    $('tuto-letter-display').style.display = 'flex';
+    $('tuto-match-area').style.display = 'none';
+    $('tuto-done').style.display = 'none';
+    $('tuto-nav-buttons').style.display = 'flex';
+    startInteractiveTutorial();
+  }
 }
+
 $('btn-tuto').addEventListener('click',openTutorial);
 $('hint-banner').addEventListener('click',openTutorial);
 
-$('t-back-btn').addEventListener('click',()=>{
+$('tuto-back').addEventListener('click',()=>{
   tutActive = false;
   isTutorial = false;
   tResetGrid();
   show('s-menu');
 });
 
-$('t-btn-next').addEventListener('click',()=>{
-  if (tutStep === 1) runTutorialStep(2);
-  else if (tutStep === 2) runTutorialStep(3);
-  else if (tutStep === 3) runTutorialStep(4);
-  else if (tutStep === 4) runTutorialStep(5);
-  else if (tutStep === 5) runTutorialStep(6);
-  else if (tutStep === 6) closeTutorialAndStart();
+$('tuto-prev').addEventListener('click',()=>{
+  if (selMode === 'span' && tutoIdx > 0) {
+    renderTutoPanel(tutoIdx - 1);
+  }
 });
 
-const tp = $('t-btn-pos');
+$('tuto-next').addEventListener('click',()=>{
+  if (selMode === 'span' && tutoIdx < 2) {
+    renderTutoPanel(tutoIdx + 1);
+  }
+});
+
+$('tuto-start-btn').addEventListener('click',()=>{
+  if (selMode === 'span') {
+    closeTutorialAndStart();
+  } else {
+    if (tutStep === 1) runTutorialStep(2);
+    else if (tutStep === 2) runTutorialStep(3);
+    else if (tutStep === 3) runTutorialStep(4);
+    else if (tutStep === 4) runTutorialStep(5);
+    else if (tutStep === 5) runTutorialStep(6);
+    else if (tutStep === 6) closeTutorialAndStart();
+  }
+});
+
+const tp = $('tuto-btn-match-pos');
 if (tp) {
   tp.addEventListener('click', () => handleTutorialInteraction('pos'));
   tp.addEventListener('touchstart', e => { e.preventDefault(); handleTutorialInteraction('pos'); }, {passive:false});
 }
 
-const ts = $('t-btn-sound');
+const ts = $('tuto-btn-match-sound');
 if (ts) {
   ts.addEventListener('click', () => handleTutorialInteraction('sound'));
   ts.addEventListener('touchstart', e => { e.preventDefault(); handleTutorialInteraction('sound'); }, {passive:false});
@@ -2192,7 +2354,7 @@ document.addEventListener('keydown',e=>{
     if(e.code==='ArrowRight'||e.code==='KeyL'){ e.preventDefault(); respondDual('aud'); }
   }
   // Keyboard validation for tutorial
-  if($('s-tutorial').classList.contains('on') && tutActive){
+  if($('s-tuto').classList.contains('on') && tutActive){
     if(e.code==='ArrowLeft'||e.code==='KeyA'){ e.preventDefault(); handleTutorialInteraction('pos'); }
     if(e.code==='ArrowRight'||e.code==='KeyL'){ e.preventDefault(); handleTutorialInteraction('sound'); }
   }
