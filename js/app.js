@@ -1271,7 +1271,27 @@ function updateGameScore(){ if(!G) return; const el=$('g-score'); if(!el) return
 function flashPace(){ const el=$('g-pace'); if(!el) return; el.classList.remove('pace-flash'); void el.offsetWidth; el.classList.add('pace-flash'); setTimeout(()=>el.classList.remove('pace-flash'),750); }
 
 function show(id){
-  $$('.scr').forEach(s=>{ s.classList.remove('on'); s.scrollTop=0; });
+  const activeScr = document.querySelector('.scr.on');
+  if (activeScr && activeScr.id === 's-welcome' && id === 's-menu') {
+    activeScr.classList.add('fade-out');
+    $(id).classList.add('on');
+    const isMenu = true;
+    document.body.classList.add('on-menu');
+    $('btn-cfg').style.display = 'none';
+    $('snd').style.display = 'none';
+    renderMenuStreak();
+    renderWeekDots();
+    $$('.nav-item').forEach(n=>n.classList.remove('on'));
+    $('nav-inicio')?.classList.add('on');
+    
+    setTimeout(() => {
+      activeScr.classList.remove('on', 'fade-out');
+      activeScr.scrollTop = 0;
+    }, 500);
+    return;
+  }
+
+  $$('.scr').forEach(s=>{ s.classList.remove('on', 'fade-out'); s.scrollTop=0; });
   $(id).classList.add('on');
   const gameScreens=['s-game','s-span','s-dual'];
   const isMenu = id==='s-menu';
@@ -1988,8 +2008,7 @@ function showModeConfig(mode){
   show('s-mode-config');
 }
 
-// Welcome
-$('btn-welcome').addEventListener('click',()=>{ DB.markWelcome(); show('s-menu'); });
+// Welcome (automated transition replaces button)
 
 // Mode intro
 $('btn-mi-start').addEventListener('click',()=>{ if(pendingModeAction){ pendingModeAction(); pendingModeAction=null; } });
@@ -2406,12 +2425,21 @@ window.addEventListener('resize',()=>{ if($('s-stats').classList.contains('on'))
 // Apply stored binaural setting
 if(!CFG.get('binauralOn') && Snd.on){ Snd.toggle(); $('snd').textContent='🔇'; }
 
-// Auto-start binaural on first user gesture (Web Audio API requires user activation)
+// Global function to safely initialize audio ecosystem
+window.encenderEcosistemaAudio = () => {
+  if (CFG.get('binauralOn')) Snd.init();
+};
+
+// Auto-start binaural on first user gesture once the menu is loaded (Web Audio API requires user activation)
 let _audioReady = false;
 const initAudioOnGesture = () => {
+  // Only trigger audio context initialization if s-menu is active (transition from welcome completed)
+  if (!document.getElementById('s-menu').classList.contains('on')) {
+    return; // Wait until welcome screen timer finishes and menu is shown
+  }
   if (!_audioReady) {
     _audioReady = true;
-    if (CFG.get('binauralOn')) Snd.init();
+    window.encenderEcosistemaAudio();
     // Clean up
     ['pointerdown', 'touchstart', 'click'].forEach(evt => {
       document.removeEventListener(evt, initAudioOnGesture, true);
@@ -2439,12 +2467,10 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{ navigator.serviceWorker.register('./service-worker.js').catch(()=>{}); });
 }
 
-// Decide initial screen
-if(!DB.welcomeSeen()){
-  show('s-welcome');
-  setTimeout(()=>{ const b=$('btn-welcome'); if(b) b.disabled=false; }, 500);
-} else {
-  renderMenuStreak();
+// Always show welcome screen at startup, then transition automatically to menu after 2.5 seconds
+show('s-welcome');
+setTimeout(() => {
+  DB.markWelcome();
   show('s-menu');
   $('hint-banner').style.display='block';
-}
+}, 2500);
