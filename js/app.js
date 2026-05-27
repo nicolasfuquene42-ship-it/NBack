@@ -517,8 +517,60 @@ function respond(){
   else { G.misses++; Snd.falseAlarm(); uiStat('falso positivo','bad'); flashBtn(false); shakeBtn(); }
 }
 
+function ejecutarCuentaRegresiva(contenedorId, callback) {
+  const overlay = document.getElementById(contenedorId);
+  if (!overlay) {
+    callback();
+    return;
+  }
+  overlay.textContent = '';
+  overlay.style.display = 'flex';
+  overlay.classList.remove('countdown-animate');
+
+  let count = 3;
+  
+  function nextStep() {
+    // Check if the game is still active
+    const isGameActive = (contenedorId === 'g-countdown' && G) || (contenedorId === 'd-countdown' && D);
+    if (!isGameActive) {
+      overlay.style.display = 'none';
+      overlay.classList.remove('countdown-animate');
+      return;
+    }
+
+    if (count > 0) {
+      overlay.textContent = count;
+      overlay.classList.remove('countdown-animate');
+      void overlay.offsetWidth;
+      overlay.classList.add('countdown-animate');
+      if (Snd.on) Snd.cell();
+      count--;
+      setTimeout(nextStep, 1000);
+    } else if (count === 0) {
+      overlay.textContent = '¡YA!';
+      overlay.classList.remove('countdown-animate');
+      void overlay.offsetWidth;
+      overlay.classList.add('countdown-animate');
+      if (Snd.on) Snd.hit();
+      count--;
+      setTimeout(nextStep, 1000);
+    } else {
+      overlay.style.display = 'none';
+      overlay.classList.remove('countdown-animate');
+      callback();
+    }
+  }
+  
+  nextStep();
+}
+
 function stopGame(){
   stopOnboarding();
+  const co = $('g-countdown');
+  if (co) {
+    co.style.display = 'none';
+    co.classList.remove('countdown-animate');
+  }
   if(!G) return;
   clearTimeout(G.t1); clearTimeout(G.t2); clearTimeout(G.t3);
   if(G.clock) clearInterval(G.clock);
@@ -547,7 +599,7 @@ function startGame(mode,n,durationMin){
   $('grid').style.display = isEmotion ? 'none' : 'grid';
   $('face-display').style.display = isEmotion ? 'block' : 'none';
 
-  setTimeout(()=>{
+  ejecutarCuentaRegresiva('g-countdown', () => {
     G.startTime=Date.now();
     G.clock=setInterval(()=>{
       if(!G||G.done) return;
@@ -556,7 +608,7 @@ function startGame(mode,n,durationMin){
       uiProg(Math.min(1,(Date.now()-G.startTime)/G.targetDuration));
     },1000);
     runTurn();
-  },950);
+  });
 }
 
 /* ══════════════════════════════════════════
@@ -912,7 +964,7 @@ function startDual(n,durationMin){
   $('d-stat').textContent='';
   $('d-letter').style.display='none';
   dEnableBtn(false,false);
-  setTimeout(()=>{
+  ejecutarCuentaRegresiva('d-countdown', () => {
     D.startTime=Date.now();
     D.clock=setInterval(()=>{
       if(!D||D.done) return;
@@ -921,11 +973,16 @@ function startDual(n,durationMin){
       $('d-prog').style.width=(Math.min(1,(Date.now()-D.startTime)/D.targetDuration)*100)+'%';
     },1000);
     runDualTurn();
-  },950);
+  });
 }
 
 function stopDual(){
   stopDualOnboarding();
+  const co = $('d-countdown');
+  if (co) {
+    co.style.display = 'none';
+    co.classList.remove('countdown-animate');
+  }
   if(!D) return;
   clearTimeout(D.t1); clearTimeout(D.t2); clearTimeout(D.t3);
   if(D.clock) clearInterval(D.clock);
