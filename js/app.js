@@ -1883,6 +1883,7 @@ function handleTutorialInteraction(type) {
   const startBtn = $('tuto-start-btn');
   const doneArea = $('tuto-done');
   const matchArea = $('tuto-match-area');
+  const nextBtn = $('tuto-next');
   
   if (tutStep === 3 && type === 'pos') {
     Snd.hit();
@@ -1915,6 +1916,7 @@ function handleTutorialInteraction(type) {
       startBtn.textContent = 'SIGUIENTE';
       startBtn.style.display = 'block';
     }
+    if (nextBtn) nextBtn.style.visibility = 'visible';
     
   } else if (tutStep === 3 && type === 'sound') {
     Snd.falseAlarm();
@@ -1961,6 +1963,7 @@ function handleTutorialInteraction(type) {
       startBtn.textContent = 'SIGUIENTE';
       startBtn.style.display = 'block';
     }
+    if (nextBtn) nextBtn.style.visibility = 'visible';
     
   } else if (tutStep === 4 && type === 'pos') {
     Snd.falseAlarm();
@@ -2423,6 +2426,11 @@ $('tuto-prev').addEventListener('click',()=>{
 $('tuto-next').addEventListener('click',()=>{
   if (selMode === 'span' && tutoIdx < 2) {
     renderTutoPanel(tutoIdx + 1);
+  } else if (selMode !== 'span') {
+    const startBtn = $('tuto-start-btn');
+    if (startBtn && startBtn.style.display === 'block') {
+      startBtn.click();
+    }
   }
 });
 
@@ -2532,50 +2540,31 @@ window.addEventListener('resize',()=>{ if($('s-stats').classList.contains('on'))
 // Apply stored binaural setting
 if(!CFG.get('binauralOn') && Snd.on){ Snd.toggle(); $('snd').textContent='🔇'; }
 
-// Pure Splash Mode Initialization state
-let _firebaseConnected = false;
-let _audioInitialized = false;
+// Pure Splash Mode Initialization state with checkFirebaseAndReady
+let _firebaseFallback = false;
 
-function comprobarInicializacionCompleta() {
-  if (_firebaseConnected && _audioInitialized) {
+// Fallback safety timeout (3.2 seconds) to prevent being stuck on Splash screen
+setTimeout(() => {
+  _firebaseFallback = true;
+}, 3200);
+
+async function checkFirebaseAndReady() {
+  if (_firebaseFallback || (typeof firebase !== "undefined" && firebase.apps.length > 0)) {
     if (!document.getElementById('s-menu').classList.contains('on')) {
       DB.markWelcome();
       show('s-menu');
       const hint = $('hint-banner');
       if (hint) hint.style.display = 'block';
     }
+    return;
   }
+  setTimeout(checkFirebaseAndReady, 100);
 }
 
 // Global function to safely initialize audio ecosystem
 window.encenderEcosistemaAudio = () => {
   if (CFG.get('binauralOn')) Snd.init();
-  _audioInitialized = true;
-  comprobarInicializacionCompleta();
 };
-
-// Monitor Firebase Realtime Database connection state
-try {
-  if (window.firebase) {
-    firebase.database().ref(".info/connected").on("value", (snap) => {
-      if (snap.val() === true) {
-        _firebaseConnected = true;
-        comprobarInicializacionCompleta();
-      }
-    });
-  } else {
-    _firebaseConnected = true;
-  }
-} catch (e) {
-  _firebaseConnected = true;
-}
-
-// Fallback safety timeout (3.2 seconds) to prevent being stuck on Splash screen
-setTimeout(() => {
-  _firebaseConnected = true;
-  _audioInitialized = true;
-  comprobarInicializacionCompleta();
-}, 3200);
 
 // Auto-start binaural on first user gesture (Web Audio API requires user activation)
 let _audioReady = false;
@@ -2612,3 +2601,6 @@ if('serviceWorker' in navigator){
 
 // Always show welcome screen at startup as pure Splash
 show('s-welcome');
+
+// Run the check loop
+checkFirebaseAndReady();

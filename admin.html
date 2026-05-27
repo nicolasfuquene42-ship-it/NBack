@@ -821,12 +821,10 @@
       const pComparison = document.getElementById('panel-comparison');
       if (pRanking) {
         pRanking.classList.remove('flash-update');
-        void pRanking.offsetWidth; // Trigger reflow
         pRanking.classList.add('flash-update');
       }
       if (pComparison) {
         pComparison.classList.remove('flash-update');
-        void pComparison.offsetWidth; // Trigger reflow
         pComparison.classList.add('flash-update');
       }
     }
