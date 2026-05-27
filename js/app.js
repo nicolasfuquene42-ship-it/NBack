@@ -2596,15 +2596,14 @@ window.addEventListener('resize',()=>{ if($('s-stats').classList.contains('on'))
 if(!CFG.get('binauralOn') && Snd.on){ Snd.toggle(); $('snd').textContent='🔇'; }
 
 // Pure Splash Mode Initialization state with checkFirebaseAndReady
-let _firebaseFallback = false;
-
-// Fallback safety timeout (3.2 seconds) to prevent being stuck on Splash screen
-setTimeout(() => {
-  _firebaseFallback = true;
-}, 3200);
+const MIN_SPLASH_TIME = 3000; // 3 seconds visual grace time
+const APP_START_TIME = Date.now();
 
 async function checkFirebaseAndReady() {
-  if (_firebaseFallback || (typeof firebase !== "undefined" && firebase.apps.length > 0)) {
+  const elapsed = Date.now() - APP_START_TIME;
+  const isFirebaseReady = typeof firebase !== "undefined" && firebase.apps.length > 0;
+  
+  if (isFirebaseReady && elapsed >= MIN_SPLASH_TIME) {
     if (!document.getElementById('s-menu').classList.contains('on')) {
       DB.markWelcome();
       show('s-menu');
@@ -2613,7 +2612,7 @@ async function checkFirebaseAndReady() {
     }
     return;
   }
-  setTimeout(checkFirebaseAndReady, 100);
+  setTimeout(checkFirebaseAndReady, 300);
 }
 
 // Global function to safely initialize audio ecosystem
