@@ -1916,7 +1916,6 @@ function handleTutorialInteraction(type) {
       startBtn.textContent = 'SIGUIENTE';
       startBtn.style.display = 'block';
     }
-    if (nextBtn) nextBtn.style.visibility = 'visible';
     
   } else if (tutStep === 3 && type === 'sound') {
     Snd.falseAlarm();
@@ -1963,7 +1962,6 @@ function handleTutorialInteraction(type) {
       startBtn.textContent = 'SIGUIENTE';
       startBtn.style.display = 'block';
     }
-    if (nextBtn) nextBtn.style.visibility = 'visible';
     
   } else if (tutStep === 4 && type === 'pos') {
     Snd.falseAlarm();
