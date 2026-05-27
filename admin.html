@@ -933,7 +933,7 @@
       
       // RENDER RANKING TABLE
       const rankingBody = document.getElementById('ranking-body');
-      rankingBody.innerHTML = '';
+      const rankingFragment = document.createDocumentFragment();
       
       partidas.forEach((p, idx) => {
         const isFirst = idx === 0;
@@ -950,8 +950,10 @@
           <td>${p.agilidad > 0 ? p.agilidad + ' s' : '—'}</td>
           <td style="color:var(--muted); font-size:0.8rem">${formatTime(p.timestamp)}</td>
         `;
-        rankingBody.appendChild(tr);
+        rankingFragment.appendChild(tr);
       });
+      rankingBody.innerHTML = '';
+      rankingBody.appendChild(rankingFragment);
       
       // CALCULATE MODAL STATISTICS
       const modeStats = {};
@@ -977,17 +979,17 @@
       });
       
       const modesBody = document.getElementById('modes-body');
-      modesBody.innerHTML = '';
+      const modesFragment = document.createDocumentFragment();
       
       // Order modes by count desc
       const sortedModes = Object.keys(modeStats).sort((a,b) => modeStats[b].count - modeStats[a].count);
       
       if (sortedModes.length === 0) {
-        modesBody.innerHTML = `
-          <tr>
-            <td colspan="5" class="empty-state">Sin estadísticas agregadas.</td>
-          </tr>
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td colspan="5" class="empty-state">Sin estadísticas agregadas.</td>
         `;
+        modesFragment.appendChild(tr);
       } else {
         sortedModes.forEach(modeKey => {
           const m = modeStats[modeKey];
@@ -1003,9 +1005,11 @@
             <td style="text-align: center; color: var(--warn)">${avgFriction}</td>
             <td style="text-align: center">${avgSpeed}</td>
           `;
-          modesBody.appendChild(tr);
+          modesFragment.appendChild(tr);
         });
       }
+      modesBody.innerHTML = '';
+      modesBody.appendChild(modesFragment);
     }
     
     // 4. CONTROL DE RESETEO (DOBLE CONFIRMACIÓN)

@@ -345,11 +345,18 @@ function genDualSeq(n, matchPct=30) {
 function speakLetter(letter) {
   if(!('speechSynthesis' in window)) return;
   try {
-    speechSynthesis.cancel();
+    window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(letter);
-    utt.rate=1.0; utt.pitch=1.0; utt.volume=0.95;
-    speechSynthesis.speak(utt);
-  } catch(e){}
+    utt.rate = 1.0; 
+    utt.pitch = 1.0; 
+    utt.volume = 0.95;
+    utt.onerror = (e) => {
+      console.warn("SpeechSynthesis warning/error handled safely:", e.error);
+    };
+    window.speechSynthesis.speak(utt);
+  } catch(e){
+    console.error("SpeechSynthesis try/catch blockage handled safely:", e);
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -2029,39 +2036,122 @@ $$('#mdur .lb').forEach(b=>b.addEventListener('click',()=>{ $$('#mdur .lb').forE
 $('btn-mode-back').addEventListener('click',()=>show('s-menu'));
 
 // Start
-$('btn-start').addEventListener('click',()=>{
+function mostrarAlertaEstudiante() {
+  if (document.getElementById('custom-alert-overlay')) return;
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'custom-alert-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 15, 26, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  `;
+  
+  const box = document.createElement('div');
+  box.style.cssText = `
+    background: rgba(15, 20, 32, 0.95);
+    border: 1.5px solid var(--warn, #ff5e7e);
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 320px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 94, 126, 0.15);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  `;
+  
+  box.innerHTML = `
+    <h3 style="font-family:'Rajdhani',sans-serif; font-size:1.3rem; font-weight:700; color:var(--warn, #ff5e7e); margin:0 0 12px 0; letter-spacing:1px;">IDENTIFICACIÓN REQUERIDA</h3>
+    <p style="font-family:'DM Sans',sans-serif; font-size:0.88rem; color:var(--text); line-height:1.5; margin:0 0 20px 0;">Por favor, ingresa tu Nombre o Código de estudiante asignado para poder registrar tu sesión en el ranking en vivo.</p>
+    <button id="btn-custom-alert-ok" class="btn-primary-full" style="width:100%; height:46px; border-radius:8px; font-family:'Rajdhani',sans-serif; font-size:1.05rem; font-weight:700; letter-spacing:1px; cursor:pointer;">ENTENDIDO</button>
+  `;
+  
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  
+  setTimeout(() => {
+    overlay.style.opacity = '1';
+    box.style.transform = 'scale(1)';
+  }, 10);
+  
+  const closeAlert = () => {
+    overlay.style.opacity = '0';
+    box.style.transform = 'scale(0.9)';
+    setTimeout(() => {
+      overlay.remove();
+      const input = document.getElementById('player-name');
+      if (input) {
+        input.focus();
+        input.style.borderColor = 'var(--warn, #ff5e7e)';
+        setTimeout(() => {
+          input.style.borderColor = '';
+        }, 1500);
+      }
+    }, 300);
+  };
+  
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeAlert();
+  });
+  
+  box.querySelector('#btn-custom-alert-ok').addEventListener('click', closeAlert);
+}
+
+function iniciarPartida(e) {
+  if (e && e.type === 'touchstart') {
+    e.preventDefault();
+  }
+  
+  const nameInput = $('player-name') ? $('player-name').value.trim() : '';
+  if (!nameInput) {
+    mostrarAlertaEstudiante();
+    return;
+  }
+  
   isTutorial = false;
   Snd.init();
-  const nameInput = $('player-name') ? $('player-name').value.trim() : '';
-  CURRENT_PLAYER_NAME = nameInput || ('Anon_' + Math.floor(100 + Math.random() * 900));
-  if(selMode==='dual'){
-    maybeModeOverlay('dual',()=>{
+  CURRENT_PLAYER_NAME = nameInput;
+  
+  if (selMode === 'dual') {
+    maybeModeOverlay('dual', () => {
       Snd.setBg(CFG.get('bgNoise'));
       show('s-dual');
-      startDual(selN,selDur);
+      startDual(selN, selDur);
     });
     return;
   }
-  if(selMode==='span'){
-    maybeModeOverlay('span',()=>{
+  if (selMode === 'span') {
+    maybeModeOverlay('span', () => {
       Snd.setBg(CFG.get('bgNoise'));
       show('s-span');
       startSpan();
     });
     return;
   }
-  maybeModeOverlay(selMode,()=>{
+  maybeModeOverlay(selMode, () => {
     Snd.setBg(CFG.get('bgNoise'));
-    $('g-lvl').textContent=selN+'-Back';
-    $('g-time').textContent=fmtTime(selDur*60000);
-    $('g-warm').style.display='none';
-    $('g-pace').textContent=(INIT_IV/1000).toFixed(1);
-    $('g-score').style.display='none';
-    uiProg(0); uiStat('',null);
+    $('g-lvl').textContent = selN + '-Back';
+    $('g-time').textContent = fmtTime(selDur * 60000);
+    $('g-warm').style.display = 'none';
+    $('g-pace').textContent = (INIT_IV / 1000).toFixed(1);
+    $('g-score').style.display = 'none';
+    uiProg(0); uiStat('', null);
     show('s-game');
-    startGame(selMode,selN,selDur);
+    startGame(selMode, selN, selDur);
   });
-});
+}
+
+$('btn-start').addEventListener('click', iniciarPartida);
+$('btn-start').addEventListener('touchstart', iniciarPartida, {passive: false});
 
 // Match button
 $('mbtn').addEventListener('touchstart',e=>{ e.preventDefault(); Snd.init(); respond(); },{passive:false});
