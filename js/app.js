@@ -1922,6 +1922,18 @@ function handleTutorialInteraction(type) {
       bs.classList.add('miss');
       setTimeout(() => bs.classList.remove('miss'), 500);
     }
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--warn, #ff5e7e); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
+        No es correcto
+      </div>
+      <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
+        Recuerda que la posición actual (arriba-izquierda) es idéntica a la de hace 2 turnos (Turno 1). El audio dictado ("R") no coincide con el de hace 2 turnos ("B").
+      </div>
+      ${renderTutorialMiniGrid(3)}
+      <div style="font-size: 0.86rem; color: var(--warn, #ff5e7e); font-weight: 500; line-height: 1.6; margin-top: 6px;">
+        Intenta pulsar el botón UBICACIÓN (o tecla A) para avanzar.
+      </div>
+    `;
     
   } else if (tutStep === 4 && type === 'sound') {
     Snd.hit();
@@ -1956,20 +1968,25 @@ function handleTutorialInteraction(type) {
       bp.classList.add('miss');
       setTimeout(() => bp.classList.remove('miss'), 500);
     }
+    $('tuto-content').innerHTML = `
+      <div style="font-weight: bold; color: var(--warn, #ff5e7e); margin-bottom: 8px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family:'Rajdhani',sans-serif;">
+        No es correcto
+      </div>
+      <div style="font-size: 0.86rem; color: var(--text); line-height: 1.6; margin-bottom: 12px;">
+        El sonido dictado actual ("F") es idéntico al de hace 2 turnos (Turno 2). La posición actual (abajo-derecha) no coincide con la de hace 2 turnos (centro).
+      </div>
+      ${renderTutorialMiniGrid(4)}
+      <div style="font-size: 0.86rem; color: var(--warn, #ff5e7e); font-weight: 500; line-height: 1.6; margin-top: 6px;">
+        Intenta pulsar el botón SONIDO (o tecla L) para avanzar.
+      </div>
+    `;
   }
 }
 
 function closeTutorialAndStart() {
   tutActive = false;
   isTutorial = false;
-  
-  if (selMode === 'span') {
-    showModeConfig('span');
-  } else {
-    selMode = 'dual';
-    selN = 2;
-    showModeConfig('dual');
-  }
+  show('s-menu');
 }
 
 /* ══════════════════════════════════════════
@@ -2515,18 +2532,54 @@ window.addEventListener('resize',()=>{ if($('s-stats').classList.contains('on'))
 // Apply stored binaural setting
 if(!CFG.get('binauralOn') && Snd.on){ Snd.toggle(); $('snd').textContent='🔇'; }
 
+// Pure Splash Mode Initialization state
+let _firebaseConnected = false;
+let _audioInitialized = false;
+
+function comprobarInicializacionCompleta() {
+  if (_firebaseConnected && _audioInitialized) {
+    if (!document.getElementById('s-menu').classList.contains('on')) {
+      DB.markWelcome();
+      show('s-menu');
+      const hint = $('hint-banner');
+      if (hint) hint.style.display = 'block';
+    }
+  }
+}
+
 // Global function to safely initialize audio ecosystem
 window.encenderEcosistemaAudio = () => {
   if (CFG.get('binauralOn')) Snd.init();
+  _audioInitialized = true;
+  comprobarInicializacionCompleta();
 };
 
-// Auto-start binaural on first user gesture once the menu is loaded (Web Audio API requires user activation)
+// Monitor Firebase Realtime Database connection state
+try {
+  if (window.firebase) {
+    firebase.database().ref(".info/connected").on("value", (snap) => {
+      if (snap.val() === true) {
+        _firebaseConnected = true;
+        comprobarInicializacionCompleta();
+      }
+    });
+  } else {
+    _firebaseConnected = true;
+  }
+} catch (e) {
+  _firebaseConnected = true;
+}
+
+// Fallback safety timeout (3.2 seconds) to prevent being stuck on Splash screen
+setTimeout(() => {
+  _firebaseConnected = true;
+  _audioInitialized = true;
+  comprobarInicializacionCompleta();
+}, 3200);
+
+// Auto-start binaural on first user gesture (Web Audio API requires user activation)
 let _audioReady = false;
 const initAudioOnGesture = () => {
-  // Only trigger audio context initialization if s-menu is active (transition from welcome completed)
-  if (!document.getElementById('s-menu').classList.contains('on')) {
-    return; // Wait until welcome screen timer finishes and menu is shown
-  }
   if (!_audioReady) {
     _audioReady = true;
     window.encenderEcosistemaAudio();
@@ -2557,10 +2610,5 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{ navigator.serviceWorker.register('./service-worker.js').catch(()=>{}); });
 }
 
-// Always show welcome screen at startup, then transition automatically to menu after 2.5 seconds
+// Always show welcome screen at startup as pure Splash
 show('s-welcome');
-setTimeout(() => {
-  DB.markWelcome();
-  show('s-menu');
-  $('hint-banner').style.display='block';
-}, 2500);
