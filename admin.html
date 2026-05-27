@@ -801,9 +801,6 @@
               console.log("¡Conexión exitosa! Datos recibidos en tiempo real:", data);
               processGameData(data);
               flashVisualPanels();
-              if (typeof actualizarTablaRanking === 'function') {
-                actualizarTablaRanking(data);
-              }
             } catch (err) {
               console.error("Error al procesar los datos de Firebase:", err);
             }
